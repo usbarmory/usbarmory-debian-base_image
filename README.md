@@ -80,8 +80,8 @@ can be added or the existing one can be resized as described in the USB armory
 
 # Additional resources
 
-[Project page](https://inversepath.com/usbarmory)
-[Documentation](https://github.com/inversepath/usbarmory/wiki)
-[Board schematics, layout and support files](https://github.com/inversepath/usbarmory)
-[INTERLOCK - file encryption front end](https://github.com/inversepath/interlock)
-[Discussion group](https://groups.google.com/d/forum/usbarmory)
+[Project page](https://inversepath.com/usbarmory)  
+[Documentation](https://github.com/inversepath/usbarmory/wiki)  
+[Board schematics, layout and support files](https://github.com/inversepath/usbarmory)  
+[INTERLOCK - file encryption front end](https://github.com/inversepath/interlock)  
+[Discussion group](https://groups.google.com/d/forum/usbarmory)  
