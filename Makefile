@@ -7,7 +7,7 @@ USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
 TARGET_IMG=usbarmory-debian_jessie-base_image-`date +%Y%m%d`.raw
 
 ${TARGET_IMG}:
-	truncate -s 3500MiB $(TARGET_IMG)
+	truncate -s 3500MiB ${TARGET_IMG}
 	/sbin/parted ${TARGET_IMG} --script mklabel msdos
 	/sbin/parted ${TARGET_IMG} --script mkpart primary ext4 5M 100%
 
