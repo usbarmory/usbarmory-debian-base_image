@@ -73,13 +73,13 @@ u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.xz
 
 mxc-scc2-master.zip:
 	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
+	unzip mxc-scc2-master
 
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 u-boot: u-boot-${UBOOT_VER}/u-boot.imx
 
 mxc-scc2: mxc-scc2-master.zip linux-${LINUX_VER}/arch/arm/boot/zImage
-	unzip -f mxc-scc2-master
 	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
