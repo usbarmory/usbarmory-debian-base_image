@@ -4,6 +4,7 @@ LINUX_VER=4.9.41
 UBOOT_VER=2017.05
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
+MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
 TARGET_IMG=usbarmory-debian_jessie-base_image-`date +%Y%m%d`.raw
 
 ${TARGET_IMG}:
@@ -51,7 +52,7 @@ u-boot-${UBOOT_VER}.tar.xz:
 	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
 
 linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
-	unxz linux-${LINUX_VER}.tar.xz
+	unxz --keep linux-${LINUX_VER}.tar.xz
 	gpg --verify linux-${LINUX_VER}.tar.sign
 	tar xvf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-4.9.config -O linux-${LINUX_VER}/.config
@@ -73,10 +74,16 @@ linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 u-boot: u-boot-${UBOOT_VER}/u-boot.imx
 
-finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage
+mxc-scc2: linux-${LINUX_VER}/arch/arm/boot/zImage
+	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
+	unzip mxc-scc2-master
+	cd mxc-scc2-master && make all ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER}
+
+finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
 	sudo cp linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
 	sudo cp linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*.dtb rootfs/boot/
 	cd linux-${LINUX_VER} && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm modules_install
+	cd mxc-scc2-master && make modules_install ARCH=arm INSTALL_MOD_PATH=../rootfs
 	sudo rm rootfs/lib/modules/${LINUX_VER}/build
 	sudo rm rootfs/lib/modules/${LINUX_VER}/source
 	sudo umount rootfs
@@ -84,10 +91,11 @@ finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/a
 	xz -k ${TARGET_IMG}
 	zip -j ${TARGET_IMG}.zip ${TARGET_IMG}
 
-all: debian linux u-boot finalize
+all: debian linux mxc-scc2 u-boot finalize
 
 clean:
 	-rm -r linux-${LINUX_VER}*
 	-rm -r u-boot-${UBOOT_VER}*
+	-rm -r mxc-scc2-master*
 	-rm usbarmory-debian_jessie-base_image-*.raw
 	-rmdir rootfs
