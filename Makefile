@@ -1,4 +1,5 @@
 SHELL = /bin/bash
+JOBS=2
 
 LINUX_VER=4.9.41
 UBOOT_VER=2017.05
@@ -61,29 +62,31 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dts
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- make -j2 zImage modules imx53-usbarmory.dtb imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- make -j${JOBS} zImage modules imx53-usbarmory.dtb imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
 
 u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.xz
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xvf u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
 	cd u-boot-${UBOOT_VER} && make usbarmory_config
-	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-none-eabi- ARCH=arm make -j2
+	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-none-eabi- ARCH=arm make -j${JOBS}
+
+mxc-scc2-master.zip:
+	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
 
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 u-boot: u-boot-${UBOOT_VER}/u-boot.imx
 
-mxc-scc2: linux-${LINUX_VER}/arch/arm/boot/zImage
-	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
-	unzip mxc-scc2-master
-	cd mxc-scc2-master && make all ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER}
+mxc-scc2: mxc-scc2-master.zip linux-${LINUX_VER}/arch/arm/boot/zImage
+	unzip -f mxc-scc2-master
+	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
 	sudo cp linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
 	sudo cp linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*.dtb rootfs/boot/
 	cd linux-${LINUX_VER} && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm modules_install
-	cd mxc-scc2-master && make modules_install ARCH=arm INSTALL_MOD_PATH=../rootfs
+	cd mxc-scc2-master && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
 	sudo rm rootfs/lib/modules/${LINUX_VER}/build
 	sudo rm rootfs/lib/modules/${LINUX_VER}/source
 	sudo umount rootfs
