@@ -1,0 +1,9 @@
+luks.keyfile
+id_*
+*.swp
+rootfs
+*.raw*
+linux-*
+mxc-scc2*
+u-boot*
+usbarmory-debian*
