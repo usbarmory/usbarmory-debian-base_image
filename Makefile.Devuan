@@ -3,9 +3,10 @@ SHELL = /bin/bash
 include Makefile.config
 
 ${TARGET_IMG}:
-	truncate -s 3500MiB ${TARGET_IMG}
+	truncate -s 3814MiB ${TARGET_IMG}  # fit on 4GB card
 	/sbin/parted ${TARGET_IMG} --script mklabel msdos
-	/sbin/parted ${TARGET_IMG} --script mkpart primary ext4 5M 100%
+	/sbin/parted ${TARGET_IMG} --script mkpart primary ext2 5MiB 512MiB  # boot
+	/sbin/parted ${TARGET_IMG} --script mkpart primary 512MiB 100%       # encrypted LVM
 
 	sudo /sbin/losetup /dev/loop0 ${TARGET_IMG} -o 5242880 --sizelimit 3500MiB
 	sudo /sbin/mkfs.ext4 -F /dev/loop0
