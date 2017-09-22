@@ -8,7 +8,33 @@ ${TARGET_IMG}:
 	/sbin/parted ${TARGET_IMG} --script mkpart primary ext2 5MiB 512MiB  # boot
 	/sbin/parted ${TARGET_IMG} --script mkpart primary 512MiB 100%       # encrypted LVM
 
+mount:
+	sudo /sbin/kpartx -as ${TARGET_IMG}
+	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
 	mkdir -p rootfs
+	sudo /sbin/cryptsetup open --type luks --key-file ${KEYFILE} /dev/mapper/${LOOPMAP}p2 ${LUKSMAP} || \
+		sudo /sbin/cryptsetup open --type luks /dev/mapper/${LOOPMAP}p2 ${LUKSMAP}
+	sudo /sbin/vgchange -ay ${VGNAME}
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-root rootfs/
+	sudo mount -t ext4 /dev/mapper/${LOOPMAP}p1 rootfs/boot
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-home rootfs/home
+	sudo mount --bind /dev rootfs/dev
+	sudo mount --bind /dev/pts rootfs/dev/pts
+	sudo mount --bind /proc rootfs/proc
+	sudo mount --bind /sys rootfs/sys
+
+umount:
+	-sudo umount rootfs/boot
+	-sudo umount rootfs/home
+	-sudo umount rootfs/dev/pts
+	-sudo umount rootfs/dev
+	-sudo umount rootfs/proc
+	-sudo umount rootfs/sys
+	-sudo umount rootfs
+	-sudo /sbin/vgchange -an ${VGNAME}
+	-sudo /sbin/cryptsetup close /dev/mapper/${LUKSMAP}
+	-sudo /sbin/kpartx -d ${TARGET_IMG}
+
 devuan: ${TARGET_IMG}
 	@# setup partitions
 	sudo /sbin/kpartx -as ${TARGET_IMG}
@@ -32,6 +58,14 @@ devuan: ${TARGET_IMG}
 	sudo /sbin/mkfs.ext4 -L UAboot ${EXT4WITHOUTJOURNAL} -F /dev/mapper/${LOOPMAP}p1
 	sudo /sbin/mkfs.ext4 -L UAroot ${EXT4WITHOUTJOURNAL} -F /dev/mapper/${VGNAME}-root
 	sudo /sbin/mkfs.ext4 -L UAhome ${EXT4WITHOUTJOURNAL} -F /dev/mapper/${VGNAME}-home
+	# mount
+	mkdir -p rootfs
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-root rootfs/
+	sudo mkdir -p rootfs/boot
+	sudo mkdir -p rootfs/home
+	sudo mount -t ext4 /dev/mapper/${LOOPMAP}p1 rootfs/boot
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-home rootfs/home
+	@# debootstrap
 	sudo /usr/sbin/qemu-debootstrap --arch=armhf --include=${PKGS2BOOTSTRAP_DEVUAN} jessie rootfs http://${APTCACHERNGURL}auto.mirror.devuan.org/merged/
 	sudo cp conf/rc.local rootfs/etc/rc.local
 	sudo cp conf/sources.list rootfs/etc/apt/sources.list
