@@ -85,3 +85,8 @@ can be added or the existing one can be resized as described in the USB armory
 [Board schematics, layout and support files](https://github.com/inversepath/usbarmory)  
 [INTERLOCK - file encryption front end](https://github.com/inversepath/interlock)  
 [Discussion group](https://groups.google.com/d/forum/usbarmory)  
+
+# License
+
+The files in this repository are in the public domain.
+See the file LICENSE for details.
