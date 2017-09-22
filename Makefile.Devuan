@@ -67,28 +67,28 @@ devuan: ${TARGET_IMG}
 	sudo mount -t ext4 /dev/mapper/${VGNAME}-home rootfs/home
 	@# debootstrap
 	sudo /usr/sbin/qemu-debootstrap --arch=armhf --include=${PKGS2BOOTSTRAP_DEVUAN} jessie rootfs http://${APTCACHERNGURL}auto.mirror.devuan.org/merged/
+	@# CONFIG FILES
 	sudo cp conf/rc.local rootfs/etc/rc.local
-	sudo cp conf/sources.list rootfs/etc/apt/sources.list
+	sudo cp conf/sources.list.Devuan rootfs/etc/apt/sources.list
 	sudo cp conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
+	sudo cp conf/tlsdated.conf rootfs/etc/tlsdate/tlsdated.conf
 	sudo sed -i -e 's/INTERFACES=""/INTERFACES="usb0"/' rootfs/etc/default/isc-dhcp-server
-	echo "tmpfs /tmp tmpfs defaults 0 0" | sudo tee rootfs/etc/fstab
 	echo -e "\nUseDNS no" | sudo tee -a rootfs/etc/ssh/sshd_config
-	echo "nameserver 8.8.8.8" | sudo tee rootfs/etc/resolv.conf
-	sudo chroot rootfs systemctl mask getty-static.service
-	sudo chroot rootfs systemctl mask display-manager.service
-	sudo chroot rootfs systemctl mask hwclock-save.service
+	echo "nameserver ${NAMESERVER}" | sudo tee rootfs/etc/resolv.conf
+	sudo sed -i -e 's/^\([0-9].*tty.*\)/\#\1/' rootfs/etc/inittab
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
-	echo "g_ether" | sudo tee -a rootfs/etc/modules
-	echo "options g_ether use_eem=0 dev_addr=1a:55:89:a2:69:41 host_addr=1a:55:89:a2:69:42" | sudo tee -a rootfs/etc/modprobe.d/usbarmory.conf
+	@# configure gadget module
+	echo ${GADGETMOD} | sudo tee -a rootfs/etc/modules
+	echo ${GADGETOPTS} | sudo tee -a rootfs/etc/modprobe.d/usbarmory.conf
 	echo -e 'auto usb0\nallow-hotplug usb0\niface usb0 inet static\n  address 10.0.0.1\n  netmask 255.255.255.0\n  gateway 10.0.0.2'| sudo tee -a rootfs/etc/network/interfaces
-	echo "usbarmory" | sudo tee rootfs/etc/hostname
-	echo "usbarmory  ALL=(ALL) NOPASSWD: ALL" | sudo tee -a rootfs/etc/sudoers
-	echo -e "127.0.1.1\tusbarmory" | sudo tee -a rootfs/etc/hosts
-	sudo chroot rootfs /usr/sbin/useradd -s /bin/bash -p `sudo chroot rootfs mkpasswd -m sha-512 usbarmory` -m usbarmory
+	echo "${UAHOSTNAME}" | sudo tee rootfs/etc/hostname
+	echo "${UAUSER}  ALL=(ALL) ALL" | sudo tee -a rootfs/etc/sudoers
+	echo -e "127.0.1.1\t${UAHOSTNAME}" | sudo tee -a rootfs/etc/hosts
+	sudo /usr/sbin/chroot rootfs /usr/sbin/useradd -s /bin/bash -p `sudo /usr/sbin/chroot rootfs mkpasswd -m sha-512 ${UAUSER}` -m ${UAUSER}
 	sudo rm rootfs/etc/ssh/ssh_host_*
-	sudo chroot rootfs apt-get clean
-	sudo chroot rootfs fake-hwclock
+	sudo /usr/sbin/chroot rootfs apt-get clean
+	sudo /usr/sbin/chroot rootfs fake-hwclock
 	sudo rm rootfs/usr/bin/qemu-arm-static
 
 linux-${LINUX_VER}.tar.xz:
