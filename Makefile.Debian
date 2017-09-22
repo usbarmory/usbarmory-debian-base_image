@@ -1,12 +1,6 @@
 SHELL = /bin/bash
-JOBS=2
 
-LINUX_VER=4.9.51
-UBOOT_VER=2017.05
-
-USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
-MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
-TARGET_IMG=usbarmory-debian_jessie-base_image-`date +%Y%m%d`.raw
+include Makefile.config
 
 ${TARGET_IMG}:
 	truncate -s 3500MiB ${TARGET_IMG}
@@ -19,7 +13,7 @@ debian: ${TARGET_IMG}
 	sudo /sbin/losetup -d /dev/loop0
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 ${TARGET_IMG} rootfs/
-	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus jessie rootfs http://ftp.debian.org/debian/
+	sudo /usr/sbin/qemu-debootstrap --arch=armhf --include=${PKGS2BOOTSTRAP_DEBIAN} jessie rootfs http://${APTCACHERNGURL}ftp.debian.org/debian/
 	sudo cp conf/rc.local rootfs/etc/rc.local
 	sudo cp conf/sources.list rootfs/etc/apt/sources.list
 	sudo cp conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
