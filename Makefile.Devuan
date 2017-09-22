@@ -85,6 +85,8 @@ devuan: ${TARGET_IMG}
 	sudo sed -i -e 's/^\([0-9].*tty.*\)/\#\1/' rootfs/etc/inittab
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
+	@# setup u-boot
+	echo -e "g_cdc\nusb_f_acm\nusb_f_ecm" | sudo tee -a rootfs/etc/initramfs-tools/modules
 	@# configure gadget module
 	echo ${GADGETMOD} | sudo tee -a rootfs/etc/modules
 	echo ${GADGETOPTS} | sudo tee -a rootfs/etc/modprobe.d/usbarmory.conf
@@ -143,6 +145,18 @@ finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/a
 	cd mxc-scc2-master && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
 	sudo rm rootfs/lib/modules/${LINUX_VER}/build
 	sudo rm rootfs/lib/modules/${LINUX_VER}/source
+	echo "setenv bootargs console=ttyGS0,115200 console=\$${console} ip=10.0.0.1::10.0.0.2:255.255.255.0::usb0:none cryptdevice=/dev/mmcblk0p2:rootvault root=/dev/mapper/${VGNAME}-root rootflags=noatime rw rootwait cryptopts=source=/dev/mmcblk0p2,target=rootvault,lvm=${VGNAME}-root; ext2load mmc 0:1 \$${kernel_addr_r} /uImage; ext2load mmc 0:1 \$${ramdisk_addr_r} /uInitrd; ext2load mmc 0:1 \$${fdt_addr_r} /\$${fdtfile}" | sudo tee rootfs/boot/boot.txt
+	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T script -C none -n "UA boot script" -d /boot/boot.txt /boot/boot.scr
+	sudo cp conf/fix-login.sh rootfs/etc/initramfs-tools/hooks/
+	sudo cp conf/crypt_unlock.sh rootfs/etc/initramfs-tools/hooks/
+	sudo chmod +x rootfs/etc/initramfs-tools/hooks/fix-login.sh
+	sudo chmod +x rootfs/etc/initramfs-tools/hooks/crypt_unlock.sh
+	sudo /usr/sbin/chroot rootfs /usr/bin/env CRYPTSETUP=y /usr/sbin/update-initramfs -c -k ${LINUX_VER}
+	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T ramdisk -C none -n "UA initrd with cryptsetup" -d /boot/initrd.img-${LINUX_VER} /boot/uInitrd
+	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T kernel -a 0x70008000 -C none -n "UA custom kernel ${LINUX_VER}" -d /boot/zImage /boot/uImage
+	sync
+	sudo umount rootfs/boot
+	sudo umount rootfs/home
 	sudo umount rootfs
 	sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=${TARGET_IMG} bs=512 seek=2 conv=fsync conv=notrunc
 	xz -k ${TARGET_IMG}
