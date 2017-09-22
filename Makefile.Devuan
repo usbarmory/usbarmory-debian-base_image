@@ -75,6 +75,13 @@ devuan: ${TARGET_IMG}
 	sudo sed -i -e 's/INTERFACES=""/INTERFACES="usb0"/' rootfs/etc/default/isc-dhcp-server
 	echo -e "\nUseDNS no" | sudo tee -a rootfs/etc/ssh/sshd_config
 	echo "nameserver ${NAMESERVER}" | sudo tee rootfs/etc/resolv.conf
+	echo "rootvault /dev/mmcblk0p2 none luks" | sudo tee -a rootfs/etc/crypttab
+	@# /etc/fstab
+	echo "/dev/mapper/${VGNAME}-root / ext4 errors=remount-ro,noatime 0 1" | sudo tee rootfs/etc/fstab
+	echo "tmpfs /tmp tmpfs defaults 0 0" | sudo tee -a rootfs/etc/fstab
+	echo "/dev/mmcblk0p1 /boot ext4 defaults,noatime 0 2" | sudo tee -a rootfs/etc/fstab
+	echo "/dev/mapper/${VGNAME}-home /home ext4 defaults,noatime 0 2" | sudo tee -a rootfs/etc/fstab
+	@#
 	sudo sed -i -e 's/^\([0-9].*tty.*\)/\#\1/' rootfs/etc/inittab
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
