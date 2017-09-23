@@ -1,0 +1,3 @@
+deb http://auto.mirror.devuan.org/merged jessie          main
+deb http://auto.mirror.devuan.org/merged jessie-updates  main
+deb http://auto.mirror.devuan.org/merged jessie-security main

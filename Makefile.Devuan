@@ -1,0 +1,190 @@
+SHELL = /bin/bash
+
+include Makefile.config
+
+${TARGET_IMG}:
+	truncate -s 3814MiB ${TARGET_IMG}  # fit on 4GB card
+	/sbin/parted ${TARGET_IMG} --script mklabel msdos
+	/sbin/parted ${TARGET_IMG} --script mkpart primary ext2 5MiB 512MiB  # boot
+	/sbin/parted ${TARGET_IMG} --script mkpart primary 512MiB 100%       # encrypted LVM
+
+mount:
+	sudo /sbin/kpartx -as ${TARGET_IMG}
+	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
+	mkdir -p rootfs
+	sudo /sbin/cryptsetup open --type luks --key-file ${KEYFILE} /dev/mapper/${LOOPMAP}p2 ${LUKSMAP} || \
+		sudo /sbin/cryptsetup open --type luks /dev/mapper/${LOOPMAP}p2 ${LUKSMAP}
+	sudo /sbin/vgchange -ay ${VGNAME}
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-root rootfs/
+	sudo mount -t ext4 /dev/mapper/${LOOPMAP}p1 rootfs/boot
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-home rootfs/home
+	sudo mount --bind /dev rootfs/dev
+	sudo mount --bind /dev/pts rootfs/dev/pts
+	sudo mount --bind /proc rootfs/proc
+	sudo mount --bind /sys rootfs/sys
+
+umount:
+	-sudo umount rootfs/boot
+	-sudo umount rootfs/home
+	-sudo umount rootfs/dev/pts
+	-sudo umount rootfs/dev
+	-sudo umount rootfs/proc
+	-sudo umount rootfs/sys
+	-sudo umount rootfs
+	-sudo /sbin/vgchange -an ${VGNAME}
+	-sudo /sbin/cryptsetup close /dev/mapper/${LUKSMAP}
+	-sudo /sbin/kpartx -d ${TARGET_IMG}
+
+devuan: ${TARGET_IMG}
+	@# setup partitions
+	sudo /sbin/kpartx -as ${TARGET_IMG}
+	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
+	@# create LUKS
+	@bash -c "if [ ! -f ${KEYFILE} ]; then sudo touch ${KEYFILE}; sudo chmod 0600 ${KEYFILE}; sudo dd if=/dev/urandom of=${KEYFILE} bs=1024 count=4; fi"
+	@# overwrite partition with random
+	sudo /sbin/cryptsetup open --type plain --key-file /dev/urandom /dev/mapper/${LOOPMAP}p2 ${LUKSMAP}
+	@# Note: estimated size hardcoded based on truncate to 3814MiB above and parted "mkpart primary 512MiB 100%"
+	bash -c "pv -petrabS -s 3462397952 /dev/zero | sudo dd of=/dev/mapper/${LUKSMAP}"
+	sync
+	sudo /sbin/cryptsetup close /dev/mapper/${LUKSMAP}
+	sudo /sbin/cryptsetup --batch-mode luksFormat /dev/mapper/${LOOPMAP}p2 ${KEYFILE}
+	sudo /sbin/cryptsetup open --type luks --key-file ${KEYFILE} /dev/mapper/${LOOPMAP}p2 ${LUKSMAP}
+	@# create LVM
+	sudo /sbin/pvcreate /dev/mapper/${LUKSMAP}
+	sudo /sbin/vgcreate ${VGNAME} /dev/mapper/${LUKSMAP}
+	sudo /sbin/lvcreate --size 2G --name root ${VGNAME}
+	sudo /sbin/lvcreate --size 1G --name home ${VGNAME}
+	@# format partitions
+	sudo /sbin/mkfs.ext4 -L UAboot ${EXT4WITHOUTJOURNAL} -F /dev/mapper/${LOOPMAP}p1
+	sudo /sbin/mkfs.ext4 -L UAroot ${EXT4WITHOUTJOURNAL} -F /dev/mapper/${VGNAME}-root
+	sudo /sbin/mkfs.ext4 -L UAhome ${EXT4WITHOUTJOURNAL} -F /dev/mapper/${VGNAME}-home
+	# mount
+	mkdir -p rootfs
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-root rootfs/
+	sudo mkdir -p rootfs/boot
+	sudo mkdir -p rootfs/home
+	sudo mount -t ext4 /dev/mapper/${LOOPMAP}p1 rootfs/boot
+	sudo mount -t ext4 /dev/mapper/${VGNAME}-home rootfs/home
+	@# debootstrap
+	sudo /usr/sbin/qemu-debootstrap --arch=armhf --include=${PKGS2BOOTSTRAP_DEVUAN} jessie rootfs http://${APTCACHERNGURL}auto.mirror.devuan.org/merged/
+	@# CONFIG FILES
+	sudo cp conf/rc.local rootfs/etc/rc.local
+	sudo cp conf/sources.list.Devuan rootfs/etc/apt/sources.list
+	sudo cp conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
+	sudo cp conf/tlsdated.conf rootfs/etc/tlsdate/tlsdated.conf
+	sudo sed -i -e 's/INTERFACES=""/INTERFACES="usb0"/' rootfs/etc/default/isc-dhcp-server
+	echo -e "\nUseDNS no" | sudo tee -a rootfs/etc/ssh/sshd_config
+	echo "nameserver ${NAMESERVER}" | sudo tee rootfs/etc/resolv.conf
+	echo "rootvault /dev/mmcblk0p2 none luks" | sudo tee -a rootfs/etc/crypttab
+	@# /etc/fstab
+	echo "/dev/mapper/${VGNAME}-root / ext4 errors=remount-ro,noatime 0 1" | sudo tee rootfs/etc/fstab
+	echo "tmpfs /tmp tmpfs defaults 0 0" | sudo tee -a rootfs/etc/fstab
+	echo "/dev/mmcblk0p1 /boot ext4 defaults,noatime 0 2" | sudo tee -a rootfs/etc/fstab
+	echo "/dev/mapper/${VGNAME}-home /home ext4 defaults,noatime 0 2" | sudo tee -a rootfs/etc/fstab
+	@#
+	sudo sed -i -e 's/^\([0-9].*tty.*\)/\#\1/' rootfs/etc/inittab
+	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
+	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
+	@# setup u-boot
+	echo -e "g_cdc\nusb_f_acm\nusb_f_ecm" | sudo tee -a rootfs/etc/initramfs-tools/modules
+	@# configure gadget module
+	echo ${GADGETMOD} | sudo tee -a rootfs/etc/modules
+	echo ${GADGETOPTS} | sudo tee -a rootfs/etc/modprobe.d/usbarmory.conf
+	echo -e 'auto usb0\nallow-hotplug usb0\niface usb0 inet static\n  address 10.0.0.1\n  netmask 255.255.255.0\n  gateway 10.0.0.2'| sudo tee -a rootfs/etc/network/interfaces
+	echo "${UAHOSTNAME}" | sudo tee rootfs/etc/hostname
+	echo "${UAUSER}  ALL=(ALL) ALL" | sudo tee -a rootfs/etc/sudoers
+	echo -e "127.0.1.1\t${UAHOSTNAME}" | sudo tee -a rootfs/etc/hosts
+	sudo /usr/sbin/chroot rootfs /usr/sbin/useradd -s /bin/bash -p `sudo /usr/sbin/chroot rootfs mkpasswd -m sha-512 ${UAUSER}` -m ${UAUSER}
+	sudo rm rootfs/etc/ssh/ssh_host_*
+	sudo /usr/sbin/chroot rootfs apt-get clean
+	sudo /usr/sbin/chroot rootfs fake-hwclock
+
+lukspw: lukspwkeepmap umount
+lukspwkeepmap:
+	sudo /sbin/kpartx -as ${TARGET_IMG}
+	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
+	sudo /sbin/cryptsetup luksAddKey /dev/mapper/${LOOPMAP}p2 --key-file ${KEYFILE}
+
+luksrmkeyfileslot: luksrmkeyfileslotkeepmap umount
+luksrmkeyfileslotkeepmap:
+	sudo /sbin/kpartx -as ${TARGET_IMG}
+	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
+	# This will fail if no other key slot was set
+	sudo /sbin/cryptsetup luksRemoveKey /dev/mapper/${LOOPMAP}p2 --key-file ${KEYFILE}
+
+safe-devuan: devuan lukspwkeepmap luksrmkeyfileslotkeepmap
+
+linux-${LINUX_VER}.tar.xz:
+	wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
+	wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
+
+u-boot-${UBOOT_VER}.tar.bz2:
+	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
+	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
+
+linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
+	unxz --keep linux-${LINUX_VER}.tar.xz
+	gpg --verify linux-${LINUX_VER}.tar.sign
+	tar xvf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}
+	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-4.9.config -O linux-${LINUX_VER}/.config
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dts
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- make -j${JOBS} zImage modules imx53-usbarmory.dtb imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
+
+u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
+	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
+	tar xvf u-boot-${UBOOT_VER}.tar.bz2
+	cd u-boot-${UBOOT_VER} && make distclean
+	cd u-boot-${UBOOT_VER} && make usbarmory_config
+	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-none-eabi- ARCH=arm make -j${JOBS}
+
+mxc-scc2-master.zip:
+	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
+	unzip mxc-scc2-master
+
+linux: linux-${LINUX_VER}/arch/arm/boot/zImage
+
+u-boot: u-boot-${UBOOT_VER}/u-boot.imx
+
+mxc-scc2: mxc-scc2-master.zip linux-${LINUX_VER}/arch/arm/boot/zImage
+	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+
+finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
+	sudo cp linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
+	sudo cp linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*.dtb rootfs/boot/
+	cd linux-${LINUX_VER} && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm modules_install
+	cd mxc-scc2-master && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
+	sudo rm rootfs/lib/modules/${LINUX_VER}/build
+	sudo rm rootfs/lib/modules/${LINUX_VER}/source
+	echo "setenv bootargs console=ttyGS0,115200 console=\$${console} ip=10.0.0.1::10.0.0.2:255.255.255.0::usb0:none cryptdevice=/dev/mmcblk0p2:rootvault root=/dev/mapper/${VGNAME}-root rootflags=noatime rw rootwait cryptopts=source=/dev/mmcblk0p2,target=rootvault,lvm=${VGNAME}-root; ext2load mmc 0:1 \$${kernel_addr_r} /uImage; ext2load mmc 0:1 \$${ramdisk_addr_r} /uInitrd; ext2load mmc 0:1 \$${fdt_addr_r} /\$${fdtfile}" | sudo tee rootfs/boot/boot.txt
+	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T script -C none -n "UA boot script" -d /boot/boot.txt /boot/boot.scr
+	sudo cp conf/fix-login.sh rootfs/etc/initramfs-tools/hooks/
+	sudo cp conf/crypt_unlock.sh rootfs/etc/initramfs-tools/hooks/
+	sudo chmod +x rootfs/etc/initramfs-tools/hooks/fix-login.sh
+	sudo chmod +x rootfs/etc/initramfs-tools/hooks/crypt_unlock.sh
+	sudo /usr/sbin/chroot rootfs /usr/bin/env CRYPTSETUP=y /usr/sbin/update-initramfs -c -k ${LINUX_VER}
+	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T ramdisk -C none -n "UA initrd with cryptsetup" -d /boot/initrd.img-${LINUX_VER} /boot/uInitrd
+	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T kernel -a 0x70008000 -C none -n "UA custom kernel ${LINUX_VER}" -d /boot/zImage /boot/uImage
+	sudo rm rootfs/usr/bin/qemu-arm-static
+	sync
+	sudo umount rootfs/boot
+	sudo umount rootfs/home
+	sudo umount rootfs
+	sudo /sbin/vgchange -an ${VGNAME}
+	sudo /sbin/cryptsetup close /dev/mapper/${LUKSMAP}
+	sudo /sbin/kpartx -ds ${TARGET_IMG}
+	sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=${TARGET_IMG} bs=512 seek=2 conv=fsync conv=notrunc
+	xz -k ${TARGET_IMG}
+	zip -j ${TARGET_IMG}.zip ${TARGET_IMG}
+
+all: safe-devuan linux mxc-scc2 u-boot finalize
+
+clean:
+	-rm -r linux-${LINUX_VER}*
+	-rm -r u-boot-${UBOOT_VER}*
+	-rm -r mxc-scc2-master*
+	-rm usbarmory-devuan_jessie-base_image-*.raw
+	-rmdir rootfs
