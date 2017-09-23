@@ -151,8 +151,11 @@ can be added or the existing one can be resized as described in the USB armory
 [Board schematics, layout and support files](https://github.com/inversepath/usbarmory)  
 [INTERLOCK - file encryption front end](https://github.com/inversepath/interlock)  
 [Discussion group](https://groups.google.com/d/forum/usbarmory)  
+[Hardening the USB Armory](https://gist.github.com/yann2192/f989143c86567237460e)  
+[Ubuntu/Debian ssh unlocking](http://hacksr.blogspot.co.at/2012/05/ssh-unlock-with-fully-encrypted-ubuntu.html)  
 
 # License
 
 The files in this repository are in the public domain.
 See the file LICENSE for details.
+The files conf/fix-login.sh and conf/crypt_unlock.sh were copied and adapted with permission from http://hacksr.blogspot.co.at/2012/05/ssh-unlock-with-fully-encrypted-ubuntu.html.
