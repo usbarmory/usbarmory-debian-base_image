@@ -107,6 +107,22 @@ utility can be used.
 
 # Connecting
 
+For a Devuan image (i.e. using Makefile.Devuan) you will need to, during early boot,
+(while the LED is still dimly lit), ssh in (see also next paragraph) to
+unlock the LUKS partition. You can do so with
+```
+ssh unlock@10.0.0.1   # password "unlock" without quotes
+```
+and you will be asked automatically to provide the passphrase.
+Kindly note that the unlocking might take considerably longer time than on your PC
+(e.g. 30-40 seconds instead of a (few) second(s); depending on your PC hardware)
+which is completely normal and expected and is due to the LUKS partition having
+been created on your PC.
+If the calibration would be reduced to make it faster on the USB Armory it would
+lead to being that much easier to crack in a brute force attack on commodity
+hardware similar to your PC. If you really, really want/need to change it
+you can read up on the --iter-time option for cryptsetup.
+
 After being booted, the image uses Ethernet over USB emulation (CDC Ethernet)
 to communicate with the host, with assigned IP address 10.0.0.1 (using 10.0.0.2
 as gateway). Connection can be accomplished via SSH to 10.0.0.1, with default
