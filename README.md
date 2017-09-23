@@ -1,14 +1,19 @@
-The Makefile in this repository allows generation of a basic Debian
+The Makefile in this repository allows generation of a basic Debian / Devuan
 installation for the [USB armory](https://github.com/inversepath/usbarmory).
 
 Pre-compiled releases are [available](https://github.com/inversepath/usbarmory-debian-base_image/releases).
 
 # Prerequisites
 
-A Debian 8 installation with the following packages:
+A Debian / Devuan 8 installation with the following packages for Makefile.Debian:
 
 ```
 bc binfmt-support bzip2 gcc gcc-arm-none-eabi git gnupg make parted qemu-user-static wget xz-utils zip
+```
+
+or the following packages for Makefile.Devuan:
+```
+bc binfmt-support bzip2 gcc gcc-arm-none-eabi git gnupg kpartx make parted pv qemu-user-static wget xz-utils zip
 ```
 
 Import the Linux signing GPG key:
@@ -20,6 +25,18 @@ Import the U-Boot signing GPG key:
 ```
 gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 ```
+Copy or link either Makefile.Debian or Makefile.Devuan to Makefile.
+(or use `make -f <filename>` whenever make is mentioned below)
+
+With Makefile.Devuan you will prepare a 4 GB image where the first partition
+is unencrypted for boot files and the second partition is encrypted with LUKS
+and has LVM inside to provide maximum flexibility.  Since the /boot partition
+(/dev/mmcblk0p1) is not encrypted it will not protect against [Evil Maid
+attack](https://en.wikipedia.org/wiki/Rootkit#bootkit) but the small
+size/portability of the USB Armory should help to weaken this attack vector.
+(Secure Boot is deprecated due to
+a [possible bypass](https://github.com/inversepath/usbarmory/blob/master/software/secure_boot/Security_Advisory-Ref_QBVR2017-0001.txt)
+on the used chip)
 
 # Building
 
@@ -31,9 +48,9 @@ make all
 
 The following output files are produced:
 ```
-usbarmory-debian_jessie-base_image-YYYYMMDD.raw
-usbarmory-debian_jessie-base_image-YYYYMMDD.raw.xz
-usbarmory-debian_jessie-base_image-YYYYMMDD.raw.zip
+usbarmory-de{bi,vu}an_jessie-base_image-YYYYMMDD.raw
+usbarmory-de{bi,vu}an_jessie-base_image-YYYYMMDD.raw.xz
+usbarmory-de{bi,vu}an_jessie-base_image-YYYYMMDD.raw.zip
 ```
 
 # Installing
@@ -45,11 +62,15 @@ correct one. Errors in target specification will result in disk corruption.
 Linux (verify target from terminal using `dmesg`):
 ```
 sudo dd if=usbarmory-debian_jessie-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
+#or
+sudo dd if=usbarmory-devuan_jessie-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
 ```
 
 Mac OS X (verify target from terminal with `diskutil list`):
 ```
 sudo dd if=usbarmory-debian_jessie-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
+#or
+sudo dd if=usbarmory-devuan_jessie-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
 ```
 
 On Windows, and other OSes, alternatively the [Etcher](https://etcher.io)
