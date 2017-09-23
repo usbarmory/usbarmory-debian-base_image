@@ -53,6 +53,35 @@ usbarmory-de{bi,vu}an_jessie-base_image-YYYYMMDD.raw.xz
 usbarmory-de{bi,vu}an_jessie-base_image-YYYYMMDD.raw.zip
 ```
 
+For Makefile.Devuan additionally the following file is produced:
+```
+luks.keyfile
+```
+which holds a 4096 bit random key to unlock the LUKS partition that
+was created.
+
+If you used `make all` or `make safe-devuan` you will have been
+prompted for a passphrase for the LUKS partition and the LUKS keyslot
+for the keyfile will have been removed.
+Otherwise, please make sure that a passphrase for the LUKS encrypted
+partition is set, e.g. using `make lukspw` (otherwise you would need to
+type the contents of the keyfile at boot time into the ssh console
+to unlock the partition, which might prove difficult or maybe
+even impossible if some special characters are included that would interfere
+with normal ssh operation (e.g. "<newline>~." could be interpreted to close
+the connection by ssh and therefore leave you no way to proceed)) and to
+remove the keyfile from the LUKS keyslot (e.g. `make luksrmkeyfileslot`)
+as well as securely delete the luks.keyfile file.
+
+Please note that the `luks.keyfile` keyfile will never be removed
+automatically to avoid locking you out and having to start over from
+scratch. You will have to securely wipe it yourself once it is not needed 
+anymore, e.g. by using `shred`:
+```
+shred -u luks.keyfile
+```
+
+
 # Installing
 
 **IMPORTANT**: `/dev/sdX`, `/dev/diskN` must be replaced with your microSD
