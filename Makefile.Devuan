@@ -99,20 +99,20 @@ devuan: ${TARGET_IMG}
 	sudo /usr/sbin/chroot rootfs apt-get clean
 	sudo /usr/sbin/chroot rootfs fake-hwclock
 
-lukspw:
+lukspw: lukspwkeepmap umount
+lukspwkeepmap:
 	sudo /sbin/kpartx -as ${TARGET_IMG}
 	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
 	sudo /sbin/cryptsetup luksAddKey /dev/mapper/${LOOPMAP}p2 --key-file ${KEYFILE}
-	sudo /sbin/kpartx -d ${TARGET_IMG}
 
-luksrmkeyfileslot:
+luksrmkeyfileslot: luksrmkeyfileslotkeepmap umount
+luksrmkeyfileslotkeepmap:
 	sudo /sbin/kpartx -as ${TARGET_IMG}
 	@$(eval LOOPMAP=$(shell sudo /sbin/kpartx -l ${TARGET_IMG} | sed -ne 's/^\(loop[^p]*\)p.*/\1/; 1p' ))
 	# This will fail if no other key slot was set
 	sudo /sbin/cryptsetup luksRemoveKey /dev/mapper/${LOOPMAP}p2 --key-file ${KEYFILE}
-	sudo /sbin/kpartx -d ${TARGET_IMG}
 
-safe-devuan: devuan lukspw luksrmkeyfileslot
+safe-devuan: devuan lukspwkeepmap luksrmkeyfileslotkeepmap
 
 linux-${LINUX_VER}.tar.xz:
 	wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
