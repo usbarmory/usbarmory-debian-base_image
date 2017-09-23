@@ -98,7 +98,6 @@ devuan: ${TARGET_IMG}
 	sudo rm rootfs/etc/ssh/ssh_host_*
 	sudo /usr/sbin/chroot rootfs apt-get clean
 	sudo /usr/sbin/chroot rootfs fake-hwclock
-	sudo rm rootfs/usr/bin/qemu-arm-static
 
 lukspw:
 	sudo /sbin/kpartx -as ${TARGET_IMG}
@@ -169,10 +168,14 @@ finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/a
 	sudo /usr/sbin/chroot rootfs /usr/bin/env CRYPTSETUP=y /usr/sbin/update-initramfs -c -k ${LINUX_VER}
 	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T ramdisk -C none -n "UA initrd with cryptsetup" -d /boot/initrd.img-${LINUX_VER} /boot/uInitrd
 	sudo /usr/sbin/chroot rootfs /usr/bin/mkimage -A arm -O linux -T kernel -a 0x70008000 -C none -n "UA custom kernel ${LINUX_VER}" -d /boot/zImage /boot/uImage
+	sudo rm rootfs/usr/bin/qemu-arm-static
 	sync
 	sudo umount rootfs/boot
 	sudo umount rootfs/home
 	sudo umount rootfs
+	sudo /sbin/vgchange -an ${VGNAME}
+	sudo /sbin/cryptsetup close /dev/mapper/${LUKSMAP}
+	sudo /sbin/kpartx -ds ${TARGET_IMG}
 	sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=${TARGET_IMG} bs=512 seek=2 conv=fsync conv=notrunc
 	xz -k ${TARGET_IMG}
 	zip -j ${TARGET_IMG}.zip ${TARGET_IMG}
