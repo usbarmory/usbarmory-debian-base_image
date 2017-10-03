@@ -8,7 +8,7 @@ Pre-compiled releases are [available](https://github.com/inversepath/usbarmory-d
 A Debian 8 installation with the following packages:
 
 ```
-bc binfmt-support bzip2 gcc gcc-arm-none-eabi git gnupg make parted qemu-user-static wget xz-utils zip
+bc binfmt-support bzip2 gcc gcc-arm-none-eabi git gnupg make parted qemu-user-static wget xz-utils zip debootstrap
 ```
 
 Import the Linux signing GPG key:
