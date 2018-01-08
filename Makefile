@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.9.62
+LINUX_VER=4.9.75
 UBOOT_VER=2017.05
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
