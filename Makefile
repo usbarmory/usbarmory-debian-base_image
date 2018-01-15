@@ -6,7 +6,7 @@ UBOOT_VER=2017.05
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
 MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
-TARGET_IMG=usbarmory-debian_jessie-base_image-`date +%Y%m%d`.raw
+TARGET_IMG=usbarmory-debian_stretch-base_image-`date +%Y%m%d`.raw
 
 ${TARGET_IMG}:
 	truncate -s 3500MiB ${TARGET_IMG}
@@ -19,10 +19,10 @@ debian: ${TARGET_IMG}
 	sudo /sbin/losetup -d /dev/loop0
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 ${TARGET_IMG} rootfs/
-	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus jessie rootfs http://ftp.debian.org/debian/
-	sudo cp conf/rc.local rootfs/etc/rc.local
-	sudo cp conf/sources.list rootfs/etc/apt/sources.list
-	sudo cp conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
+	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus stretch rootfs http://ftp.debian.org/debian/
+	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
+	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
+	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
 	sudo sed -i -e 's/INTERFACES=""/INTERFACES="usb0"/' rootfs/etc/default/isc-dhcp-server
 	echo "tmpfs /tmp tmpfs defaults 0 0" | sudo tee rootfs/etc/fstab
 	echo -e "\nUseDNS no" | sudo tee -a rootfs/etc/ssh/sshd_config
@@ -83,8 +83,8 @@ mxc-scc2: mxc-scc2-master.zip linux-${LINUX_VER}/arch/arm/boot/zImage
 	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
-	sudo cp linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
-	sudo cp linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*.dtb rootfs/boot/
+	sudo install -m 644 -o root -g root linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
+	sudo install -m 644 -o root -g root linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*.dtb rootfs/boot/
 	cd linux-${LINUX_VER} && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm modules_install
 	cd mxc-scc2-master && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
 	sudo rm rootfs/lib/modules/${LINUX_VER}/build
@@ -100,5 +100,5 @@ clean:
 	-rm -r linux-${LINUX_VER}*
 	-rm -r u-boot-${UBOOT_VER}*
 	-rm -r mxc-scc2-master*
-	-rm usbarmory-debian_jessie-base_image-*.raw
+	-rm usbarmory-debian_stretch-base_image-*.raw
 	-rmdir rootfs

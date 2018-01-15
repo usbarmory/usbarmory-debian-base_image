@@ -5,7 +5,7 @@ Pre-compiled releases are [available](https://github.com/inversepath/usbarmory-d
 
 # Prerequisites
 
-A Debian 8 installation with the following packages:
+A Debian 9 installation with the following packages:
 
 ```
 bc binfmt-support bzip2 gcc gcc-arm-none-eabi git gnupg make parted qemu-user-static wget xz-utils zip debootstrap
