@@ -31,9 +31,9 @@ make all
 
 The following output files are produced:
 ```
-usbarmory-debian_jessie-base_image-YYYYMMDD.raw
-usbarmory-debian_jessie-base_image-YYYYMMDD.raw.xz
-usbarmory-debian_jessie-base_image-YYYYMMDD.raw.zip
+usbarmory-debian_stretch-base_image-YYYYMMDD.raw
+usbarmory-debian_stretch-base_image-YYYYMMDD.raw.xz
+usbarmory-debian_stretch-base_image-YYYYMMDD.raw.zip
 ```
 
 # Installing
@@ -44,12 +44,12 @@ correct one. Errors in target specification will result in disk corruption.
 
 Linux (verify target from terminal using `dmesg`):
 ```
-sudo dd if=usbarmory-debian_jessie-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
+sudo dd if=usbarmory-debian_stretch-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
 ```
 
 Mac OS X (verify target from terminal with `diskutil list`):
 ```
-sudo dd if=usbarmory-debian_jessie-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
+sudo dd if=usbarmory-debian_stretch-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
 ```
 
 On Windows, and other OSes, alternatively the [Etcher](https://etcher.io)
