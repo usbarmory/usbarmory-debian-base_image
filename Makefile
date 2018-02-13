@@ -2,11 +2,13 @@ SHELL = /bin/bash
 JOBS=2
 
 LINUX_VER=4.9.80
-UBOOT_VER=2017.05
+UBOOT_VER=2018.01
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
 MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
 TARGET_IMG=usbarmory-debian_stretch-base_image-`date +%Y%m%d`.raw
+
+.DEFAULT_GOAL := all
 
 ${TARGET_IMG}:
 	truncate -s 3500MiB ${TARGET_IMG}
@@ -62,14 +64,14 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dts
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- make -j${JOBS} zImage modules imx53-usbarmory.dtb imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} zImage modules imx53-usbarmory.dtb imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
 
 u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xvf u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
 	cd u-boot-${UBOOT_VER} && make usbarmory_config
-	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-none-eabi- ARCH=arm make -j${JOBS}
+	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
 
 mxc-scc2-master.zip:
 	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
@@ -80,7 +82,7 @@ linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 u-boot: u-boot-${UBOOT_VER}/u-boot.imx
 
 mxc-scc2: mxc-scc2-master.zip linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-none-eabi- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
 	sudo install -m 644 -o root -g root linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
