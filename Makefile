@@ -87,6 +87,7 @@ linux-deb: linux
 	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot
 	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot
 	cd linux-${LINUX_VER} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf ARCH=arm modules_install
+	rm linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/lib/modules/${LINUX_VER}/{build,source}
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf.deb
 
 u-boot: u-boot-${UBOOT_VER}/u-boot.imx
