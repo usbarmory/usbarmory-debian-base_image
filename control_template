@@ -1,0 +1,5 @@
+Package: linux-image-XXXX-usbarmory
+Version: YYYY
+Maintainer: Andrej Rosano <andrej.rosano@f-secure.com>
+Architecture: armhf
+Description: Linux XXXX for USB armory
