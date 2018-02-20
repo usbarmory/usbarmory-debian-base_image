@@ -84,7 +84,10 @@ linux-deb: linux
 	echo "${LINUX_VER_MAJOR}"
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}}
 	cat control_template | sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | sed -e 's/YYYY/${LINUX_VER}/' > linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/DEBIAN/control
-	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot
+	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/zImage-${LINUX_VER}-usbarmory
+	cp -r linux-${LINUX_VER}/.config linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/config-${LINUX_VER}-usbarmory
+	cp -r linux-${LINUX_VER}/System.map linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/System.map-${LINUX_VER}-usbarmory
+	cd linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/ ; ln -s zImage-${LINUX_VER}-usbarmory zImage
 	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot
 	cd linux-${LINUX_VER} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf ARCH=arm modules_install
 	rm linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/lib/modules/${LINUX_VER}/{build,source}
