@@ -83,7 +83,6 @@ mxc-scc2-master.zip:
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 linux-deb: linux
-	echo "${LINUX_VER_MAJOR}"
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}}
 	cat control_template | sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | sed -e 's/YYYY/${LINUX_VER}/' > linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/DEBIAN/control
 	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/zImage-${LINUX_VER}-usbarmory
