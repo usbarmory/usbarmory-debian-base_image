@@ -4,6 +4,7 @@ JOBS=2
 LINUX_VER=4.9.80
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 UBOOT_VER=2018.01
+APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
 MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
@@ -22,7 +23,7 @@ debian: ${TARGET_IMG}
 	sudo /sbin/losetup -d /dev/loop0
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 ${TARGET_IMG} rootfs/
-	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus stretch rootfs http://ftp.debian.org/debian/
+	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus,apt-transport-https stretch rootfs http://ftp.debian.org/debian/
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
 	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
@@ -33,6 +34,7 @@ debian: ${TARGET_IMG}
 	sudo chroot rootfs systemctl mask getty-static.service
 	sudo chroot rootfs systemctl mask display-manager.service
 	sudo chroot rootfs systemctl mask hwclock-save.service
+	sudo chroot apt-key adv --keyserver hkp://keys.gnupg.net --recv-keys ${APT_GPG_KEY}
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
 	echo "g_ether" | sudo tee -a rootfs/etc/modules
