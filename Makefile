@@ -1,8 +1,9 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.9.80
+LINUX_VER=4.14.20
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
+LOCALVERSION=-0
 UBOOT_VER=2018.01
 APT_GPG_KEY=CEADE0CF01939B21
 
@@ -45,9 +46,14 @@ debian: ${TARGET_IMG}
 	echo -e "127.0.1.1\tusbarmory" | sudo tee -a rootfs/etc/hosts
 	sudo chroot rootfs /usr/sbin/useradd -s /bin/bash -p `sudo chroot rootfs mkpasswd -m sha-512 usbarmory` -m usbarmory
 	sudo rm rootfs/etc/ssh/ssh_host_*
+	sudo cp linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb rootfs/tmp/
+	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb
+	sudo rm rootfs/tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb
+	sudo chroot rootfs /bin/bash -c "cd /boot ; ln -s zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage ; ln -s imx53-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb imx53-usbarmory.dtb"
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
 	sudo rm rootfs/usr/bin/qemu-arm-static
+	sudo umount rootfs
 
 linux-${LINUX_VER}.tar.xz:
 	wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
@@ -62,12 +68,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	gpg --verify linux-${LINUX_VER}.tar.sign
 	tar xvf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
-	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dts
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} zImage modules imx53-usbarmory.dtb imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} zImage modules imx53-usbarmory.dtb
 
 u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
@@ -82,40 +83,48 @@ mxc-scc2-master.zip:
 
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
-linux-deb: linux
-	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}}
-	cat control_template | sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | sed -e 's/YYYY/${LINUX_VER}/' > linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/DEBIAN/control
-	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/zImage-${LINUX_VER}-usbarmory
-	cp -r linux-${LINUX_VER}/.config linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/config-${LINUX_VER}-usbarmory
-	cp -r linux-${LINUX_VER}/System.map linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/System.map-${LINUX_VER}-usbarmory
-	cd linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot/ ; ln -s zImage-${LINUX_VER}-usbarmory zImage
-	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/boot
-	cd linux-${LINUX_VER} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf ARCH=arm modules_install
-	rm linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf/lib/modules/${LINUX_VER}/{build,source}
-	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}_armhf.deb
-
-u-boot: u-boot-${UBOOT_VER}/u-boot.imx
-
 mxc-scc2: mxc-scc2-master.zip linux-${LINUX_VER}/arch/arm/boot/zImage
 	cd mxc-scc2-master && make KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
-finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx linux-${LINUX_VER}/arch/arm/boot/zImage mxc-scc2
-	sudo install -m 644 -o root -g root linux-${LINUX_VER}/arch/arm/boot/zImage rootfs/boot/
-	sudo install -m 644 -o root -g root linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory*.dtb rootfs/boot/
-	cd linux-${LINUX_VER} && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm modules_install
-	cd mxc-scc2-master && sudo make INSTALL_MOD_PATH=../rootfs ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
-	sudo rm rootfs/lib/modules/${LINUX_VER}/build
-	sudo rm rootfs/lib/modules/${LINUX_VER}/source
-	sudo umount rootfs
+dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
+	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dts
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
+
+linux-deb: linux dtb mxc-scc2
+	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
+	cat control_template | sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' > linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control
+	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/zImage-${LINUX_VER}${LOCALVERSION}-usbarmory
+	cp -r linux-${LINUX_VER}/.config linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/config-${LINUX_VER}${LOCALVERSION}-usbarmory
+	cp -r linux-${LINUX_VER}/System.map linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/System.map-${LINUX_VER}${LOCALVERSION}-usbarmory
+	cd linux-${LINUX_VER} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm modules_install
+	cd mxc-scc2-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
+	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb
+	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-host-${LINUX_VER}${LOCALVERSION}.dtb
+	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-spi-${LINUX_VER}${LOCALVERSION}.dtb
+	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-gpio-${LINUX_VER}${LOCALVERSION}.dtb
+	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-i2c-${LINUX_VER}${LOCALVERSION}.dtb
+	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-scc2-${LINUX_VER}${LOCALVERSION}.dtb
+	rm linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/{build,source}
+	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb
+
+u-boot: u-boot-${UBOOT_VER}/u-boot.imx
+
+finalize: ${TARGET_IMG} u-boot-${UBOOT_VER}/u-boot.imx
 	sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=${TARGET_IMG} bs=512 seek=2 conv=fsync conv=notrunc
 	xz -k ${TARGET_IMG}
 	zip -j ${TARGET_IMG}.zip ${TARGET_IMG}
 
-all: debian linux mxc-scc2 u-boot finalize
+all: linux-deb debian u-boot finalize
 
 clean:
 	-rm -r linux-${LINUX_VER}*
 	-rm -r u-boot-${UBOOT_VER}*
+	-rm -r linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf*
 	-rm -r mxc-scc2-master*
 	-rm usbarmory-debian_stretch-base_image-*.raw
 	-rmdir rootfs
