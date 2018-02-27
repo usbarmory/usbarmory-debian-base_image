@@ -24,7 +24,7 @@ debian: ${TARGET_IMG}
 	sudo /sbin/losetup -d /dev/loop0
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 ${TARGET_IMG} rootfs/
-	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr stretch rootfs http://ftp.debian.org/debian/
+	sudo qemu-debootstrap --arch=armhf --include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates stretch rootfs http://ftp.debian.org/debian/
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
 	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
