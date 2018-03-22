@@ -1,10 +1,10 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.14.22
+LINUX_VER=4.14.29
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 LOCALVERSION=-0
-UBOOT_VER=2018.01
+UBOOT_VER=2018.03
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
