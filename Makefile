@@ -67,7 +67,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	unxz --keep linux-${LINUX_VER}.tar.xz
 	gpg --verify linux-${LINUX_VER}.tar.sign
 	tar xvf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}
-	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=usbarmory KBUILD_BUILD_HOST=usbarmory LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} zImage modules imx53-usbarmory.dtb
 
 u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
