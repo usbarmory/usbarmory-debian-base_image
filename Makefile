@@ -49,7 +49,6 @@ debian: ${TARGET_IMG}
 	sudo cp linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb rootfs/tmp/
 	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb
 	sudo rm rootfs/tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb
-	sudo chroot rootfs /bin/bash -c "cd /boot ; ln -s zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage ; ln -s imx53-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb imx53-usbarmory.dtb"
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
 	sudo rm rootfs/usr/bin/qemu-arm-static
