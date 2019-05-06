@@ -109,6 +109,8 @@ linux-deb: linux dtb mxc-scc2
 	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-gpio-${LINUX_VER}${LOCALVERSION}.dtb
 	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-i2c-${LINUX_VER}${LOCALVERSION}.dtb
 	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot/imx53-usbarmory-scc2-${LINUX_VER}${LOCALVERSION}.dtb
+	cd linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
+	cd linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s imx53-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb imx53-usbarmory.dtb
 	rm linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/{build,source}
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
