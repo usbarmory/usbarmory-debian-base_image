@@ -87,7 +87,7 @@ hid-generic 0003:15A2:0080.0003: hiddev96,hidraw1: USB HID v1.10 Device [Freesca
 Load the bootloader using the [imx_loader](https://github.com/boundarydevices/imx_usb_loader) utility:
 
 ```
-imx_usb output/images/u-boot.imx
+imx_usb u-boot-20*.*/u-boot.imx
 ```
 
 On the USB armory Mk II serial console, accessible through the
