@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.19.53
+LINUX_VER=4.19.56
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 LOCALVERSION=-0
 UBOOT_VER=2019.04
