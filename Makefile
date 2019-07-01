@@ -125,16 +125,22 @@ u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
 
 mxc-scc2-master.zip:
-	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
-	unzip mxc-scc2-master
+	@if test "${IMX}" = "imx53"; then \
+		wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip && \
+		unzip mxc-scc2-master; \
+	fi
 
 mxs-dcp-longterm.zip:
-	wget ${MXS_DCP_REPO}/archive/longterm.zip -O mxs-dcp-longterm.zip
-	unzip mxs-dcp-longterm
+	@if test "${IMX}" = "imx6ull"; then \
+		wget ${MXS_DCP_REPO}/archive/longterm.zip -O mxs-dcp-longterm.zip && \
+		unzip mxs-dcp-longterm; \
+	fi
 
 caam-keyblob-master.zip:
-	wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip
-	unzip caam-keyblob-master
+	@if test "${IMX}" = "imx6ul"; then \
+		wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip && \
+		unzip caam-keyblob-master; \
+	fi
 
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
@@ -171,16 +177,20 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	cp -r linux-${LINUX_VER}/.config linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/config-${LINUX_VER}${LOCALVERSION}-usbarmory
 	cp -r linux-${LINUX_VER}/System.map linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/System.map-${LINUX_VER}${LOCALVERSION}-usbarmory
 	cd linux-${LINUX_VER} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm modules_install
-	cd mxc-scc2-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
-	cd mxs-dcp-longterm && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
-	cd caam-keyblob-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install
 	cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb
-	@if test "${V}" = "mark-one"; then \
+	@if test "${IMX}" = "imx53"; then \
+		cd mxc-scc2-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-host.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-host-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-spi.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-spi-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-gpio.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-gpio-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-i2c.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-i2c-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-scc2.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-scc2-${LINUX_VER}${LOCALVERSION}.dtb; \
+	fi
+	@if test "${IMX}" = "imx6ull"; then \
+		cd mxs-dcp-longterm && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
+	fi
+	@if test "${IMX}" = "imx6ul"; then \
+		cd caam-keyblob-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s ${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb ${IMX}-usbarmory.dtb
