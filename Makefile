@@ -175,9 +175,9 @@ extra-dtb: check_version linux
 linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
 	cat control_template | \
-		sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | \
-		sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' \
-		sed -e 's/USB armory/USB armory ${V}' \
+		sed -e 's/XXXX/${LINUX_VER_MAJOR}/'          | \
+		sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' | \
+		sed -e 's/USB armory/USB armory ${V}/' \
 		> linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control
 	@if test "${V}" = "mark-two"; then \
 		sed -i -e 's/${LINUX_VER_MAJOR}-usbarmory/${LINUX_VER_MAJOR}-usbarmory-mark-two/' \
