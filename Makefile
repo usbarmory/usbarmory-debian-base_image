@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.19.56
+LINUX_VER=4.19.57
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 LOCALVERSION=-0
 UBOOT_VER=2019.04
@@ -72,7 +72,9 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 		sudo chroot rootfs systemctl mask haveged.service; \
 	fi
 	sudo chroot rootfs wget http://keys.inversepath.com/gpg-andrej.asc -O /tmp/gpg-andrej.asc
+	sudo chroot rootfs wget http://keys.inversepath.com/gpg-andrea.asc -O /tmp/gpg-andrea.asc
 	sudo chroot rootfs apt-key add /tmp/gpg-andrej.asc
+	sudo chroot rootfs apt-key add /tmp/gpg-andrea.asc
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
 	echo "g_ether" | sudo tee -a rootfs/etc/modules
@@ -172,7 +174,15 @@ extra-dtb: check_version linux
 
 linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
-	cat control_template | sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' > linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control
+	cat control_template | \
+		sed -e 's/XXXX/${LINUX_VER_MAJOR}/' | \
+		sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' \
+		sed -e 's/USB armory/USB armory ${V}' \
+		> linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control
+	@if test "${V}" = "mark-two"; then \
+		sed -i -e 's/${LINUX_VER_MAJOR}-usbarmory/${LINUX_VER_MAJOR}-usbarmory-mark-two/' \
+		linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control; \
+	fi
 	cp -r linux-${LINUX_VER}/arch/arm/boot/zImage linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/zImage-${LINUX_VER}${LOCALVERSION}-usbarmory
 	cp -r linux-${LINUX_VER}/.config linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/config-${LINUX_VER}${LOCALVERSION}-usbarmory
 	cp -r linux-${LINUX_VER}/System.map linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/System.map-${LINUX_VER}${LOCALVERSION}-usbarmory
