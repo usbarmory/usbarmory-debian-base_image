@@ -162,8 +162,8 @@ caam-keyblob: caam-keyblob-master.zip linux
 	fi
 
 extra-dtb: check_version linux
-	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	@if test "${V}" = "mark-one"; then \
+		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-host.dts; \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-gpio.dts; \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-spi.dts; \
