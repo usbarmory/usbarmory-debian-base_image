@@ -1,4 +1,4 @@
-# USB armory Debian base image [![Build Status](https://travis-ci.org/inversepath/usbarmory-debian-base_image.svg?branch=master)](https://travis-ci.org/inversepath/usbarmory-debian-base_image)
+# USB armory Debian base image
 
 The Makefile in this repository allows generation of a basic Debian
 installation for the [USB armory](https://github.com/inversepath/usbarmory).
