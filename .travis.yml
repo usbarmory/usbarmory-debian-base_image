@@ -7,4 +7,4 @@ install:
   - gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E
   - gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 script:
-  - make all V=mark-two BOOT=eMMC JOBS=2 > /dev/null
+  - travis_wait 120 make all V=mark-two BOOT=eMMC JOBS=2 > /dev/null
