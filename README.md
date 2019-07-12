@@ -1,9 +1,11 @@
+# USB armory Debian base image [![Build Status](https://travis-ci.org/inversepath/usbarmory-debian-base_image.svg?branch=master)](https://travis-ci.org/inversepath/usbarmory-debian-base_image)
+
 The Makefile in this repository allows generation of a basic Debian
 installation for the [USB armory](https://github.com/inversepath/usbarmory).
 
 Pre-compiled releases are [available](https://github.com/inversepath/usbarmory-debian-base_image/releases).
 
-# Pre-requisites
+## Pre-requisites
 
 A Debian 9 installation with the following packages:
 
@@ -21,7 +23,7 @@ Import the U-Boot signing GPG key:
 gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 ```
 
-# Building
+## Building
 
 Launch the following command to download and build the image:
 
@@ -46,7 +48,7 @@ usbarmory-mark-one-debian_stretch-base_image-YYYYMMDD.raw
 usbarmory-mark-two-debian_stretch-base_image-YYYYMMDD.raw
 ```
 
-# Installation
+## Installation
 
 **WARNING**: the following operations will destroy any previous contents on the
 external microSD or internal eMMC storage.
@@ -68,7 +70,7 @@ sudo dd if=usbarmory-*-debian_stretch-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=
 On Windows, and other OSes, alternatively the [Etcher](https://etcher.io)
 utility can be used.
 
-## Accessing the USB armory Mk II internal eMMC as USB storage device
+### Accessing the USB armory Mk II internal eMMC as USB storage device
 
 Set the USB armory Mk II to boot in Serial Boot Loader by setting the boot
 switch towards the microSD slot, without a microSD card connected. Connect the
@@ -114,7 +116,7 @@ sd 3:0:0:0: [sdX] Write cache: enabled, read cache: enabled, doesn't support DPO
 sd 3:0:0:0: [sdX] Attached SCSI removable disk
 ```
 
-# Connecting
+## Connecting
 
 After being booted, the image uses Ethernet over USB emulation (CDC Ethernet)
 to communicate with the host, with assigned IP address 10.0.0.1 (using 10.0.0.2
@@ -123,7 +125,7 @@ user `usbarmory` and password `usbarmory`. NOTE: There is a DHCP server running
 by default. Alternatively the host interface IP address can be statically set
 to 10.0.0.2/24.
 
-# LED feedback
+## LED feedback
 
 To aid initial testing the base image configures the board LED to reflect CPU
 load average, via the Linux Heartbeat Trigger driver. In case this is
@@ -131,13 +133,13 @@ undesired, the heartbeat can be disabled by removing the `ledtrig_heartbeat`
 module in `/etc/modules`. More information about LED control
 [here](https://github.com/inversepath/usbarmory/wiki/GPIOs#led-control).
 
-# Resizing
+## Resizing
 
 The default image is 4GB of size, to use the full microSD/eMMC space a new partition
 can be added or the existing one can be resized as described in the USB armory
 [FAQ](https://github.com/inversepath/usbarmory/wiki/Frequently-Asked-Questions-(FAQ)).
 
-# Additional resources
+## Additional resources
 
 [Project page](https://inversepath.com/usbarmory)  
 [Documentation](https://github.com/inversepath/usbarmory/wiki)  
