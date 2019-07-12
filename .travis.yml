@@ -7,4 +7,8 @@ install:
   - gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E
   - gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 script:
-  - travis_wait 120 make all V=mark-two BOOT=eMMC JOBS=2 > /dev/null
+  - while true ; do echo "Still building" ; sleep 60 ; done &
+  - echopid=$!
+  - make all V=mark-two BOOT=eMMC JOBS=2 > (tee build.log |grep '>>>')
+  - kill ${echopid}
+  - tail -50 build.log
