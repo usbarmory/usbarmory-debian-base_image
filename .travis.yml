@@ -9,6 +9,6 @@ install:
 script:
   - while true ; do echo "Still building" ; sleep 60 ; done &
   - echopid=$!
-  - make all V=mark-two BOOT=eMMC JOBS=2 > (tee build.log |grep '>>>')
+  - make all V=mark-two BOOT=eMMC JOBS=2 > >(tee build.log |grep '>>>')
   - kill ${echopid}
   - tail -50 build.log
