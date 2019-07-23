@@ -21,16 +21,19 @@ V ?= mark-two
 BOOT ?= uSD
 
 check_version:
-	@if test "${BOOT}" != "uSD" && test "${BOOT}" != "eMMC"; then \
-		echo "invalid target, BOOT options are: uSD, eMMC"; \
-		exit 1; \
-	elif test "${V}" = "mark-one"; then \
-		if test "${IMX}" != "imx53"; then \
+	@if test "${V}" = "mark-one"; then \
+		if test "${BOOT}" != "uSD"; then \
+			echo "invalid target, mark-one BOOT options are: uSD"; \
+			exit 1; \
+		elif test "${IMX}" != "imx53"; then \
 			echo "invalid target, mark-one IMX options are: imx53"; \
 			exit 1; \
 		fi \
 	elif test "${V}" = "mark-two"; then \
-		if test "${IMX}" != "imx6ul" && test "${IMX}" != "imx6ull"; then \
+		if test "${BOOT}" != "uSD" && test "${BOOT}" != eMMC; then \
+			echo "invalid target, mark-two BOOT options are: uSD, eMMC"; \
+			exit 1; \
+		elif test "${IMX}" != "imx6ul" && test "${IMX}" != "imx6ull"; then \
 			echo "invalid target, mark-two IMX options are: imx6ul, imx6ull"; \
 			exit 1; \
 		fi \
