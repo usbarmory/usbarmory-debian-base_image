@@ -28,24 +28,24 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 Launch the following command to download and build the image:
 
 ```
-# For the USB armory Mk I
-make all V=mark-one
-
 # For the USB armory Mk II (external microSD)
 make all V=mark-two BOOT=uSD
 
 # For the USB armory Mk II (internal eMMC)
 make all V=mark-two BOOT=eMMC
+
+# For the USB armory Mk I
+make all V=mark-one
 ```
 
 The following output files are produced:
 
 ```
-# For the USB armory Mk I
-usbarmory-mark-one-debian_stretch-base_image-YYYYMMDD.raw
-
 # For the USB armory Mk II
 usbarmory-mark-two-debian_stretch-base_image-YYYYMMDD.raw
+
+# For the USB armory Mk I
+usbarmory-mark-one-debian_stretch-base_image-YYYYMMDD.raw
 ```
 
 ## Installation

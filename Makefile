@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.19.58
+LINUX_VER=4.19.60
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=inversepath
@@ -23,7 +23,8 @@ V ?= mark-two
 check_version:
 	@if test "${V}" = "mark-one"; then \
 		if test "${IMX}" = ""; then \
-			echo -n $(eval IMX=imx53 BOOT=uSD); \
+			echo -n $(eval IMX=imx53); \
+			echo -n $(eval BOOT=uSD); \
 		fi; \
 		echo "USB armory Mk I target (V=${V} IMX=${IMX} BOOT=${BOOT})"; \
 	elif test "${V}" = "mark-two"; then \
