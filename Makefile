@@ -17,33 +17,28 @@ IMG_VERSION=${V}-debian_stretch-base_image-$(shell /bin/date -u "+%Y%m%d")
 
 .DEFAULT_GOAL := all
 
-# supported versions: mark-one, mark-two
 V ?= mark-two
-IMX ?= imx6ull
 BOOT ?= uSD
 
 check_version:
-	@if test "${V}" = "mark-one"; then \
-		if test "${IMX}" = ""; then \
-			echo -n $(eval IMX=imx53); \
-			echo -n $(eval BOOT=uSD); \
-		fi; \
-		echo "USB armory Mk I target (V=${V} IMX=${IMX} BOOT=${BOOT})"; \
+	@if test "${BOOT}" != "uSD" && test "${BOOT}" != "eMMC"; then \
+		echo "invalid target, BOOT options are: uSD, eMMC"; \
+		exit 1; \
+	elif test "${V}" = "mark-one"; then \
+		if test "${IMX}" != "imx53"; then \
+			echo "invalid target, mark-one IMX options are: imx53"; \
+			exit 1; \
+		fi \
 	elif test "${V}" = "mark-two"; then \
-		if test "${IMX}" = ""; then \
-			echo -n $(eval IMX=imx6ull); \
-		fi; \
-		if test "${BOOT}" = ""; then \
-			echo -n $(eval BOOT=uSD); \
-		fi; \
-		echo "USB armory Mk II target (V=${V} IMX=${IMX} BOOT=${BOOT})"; \
+		if test "${IMX}" != "imx6ul" && test "${IMX}" != "imx6ull"; then \
+			echo "invalid target, mark-two IMX options are: imx6ul, imx6ull"; \
+			exit 1; \
+		fi \
 	else \
-		echo "invalid target, set V to mark-one or mark-two"; \
+		echo "invalid target - V options are: mark-one, mark-two"; \
 		exit 1; \
 	fi
-
-test: check_version
-	@echo "(V=${V} IMX=${IMX} BOOT=${BOOT})"
+	echo "target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT}"; \
 
 usbarmory-${IMG_VERSION}.raw:
 	truncate -s 3500MiB usbarmory-${IMG_VERSION}.raw
