@@ -226,7 +226,7 @@ compress:
 
 all: check_version linux-deb debian u-boot finalize
 
-clean:
+clean: check_version
 	-rm -fr linux-${LINUX_VER}*
 	-rm -fr u-boot-${UBOOT_VER}*
 	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
