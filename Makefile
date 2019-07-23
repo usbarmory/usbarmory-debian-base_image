@@ -19,6 +19,8 @@ IMG_VERSION=${V}-debian_stretch-base_image-$(shell /bin/date -u "+%Y%m%d")
 
 # supported versions: mark-one, mark-two
 V ?= mark-two
+IMX ?= imx6ull
+BOOT ?= uSD
 
 check_version:
 	@if test "${V}" = "mark-one"; then \
@@ -103,7 +105,7 @@ u-boot-${UBOOT_VER}.tar.bz2:
 	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
 	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
 
-linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
+linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 	@if [ ! -d "linux-${LINUX_VER}" ]; then \
 		unxz --keep linux-${LINUX_VER}.tar.xz; \
 		gpg --verify linux-${LINUX_VER}.tar.sign; \
@@ -113,7 +115,12 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	if test "${V}" = "mark-two"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
 	fi
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
+	cd linux-${LINUX_VER} && \
+		KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
+		KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
+		LOCALVERSION=${LOCALVERSION} \
+		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
+		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
 
 u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
@@ -129,19 +136,19 @@ u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
 	fi
 	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
 
-mxc-scc2-master.zip:
+mxc-scc2-master.zip: check_version
 	@if test "${IMX}" = "imx53"; then \
 		wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip && \
 		unzip mxc-scc2-master; \
 	fi
 
-mxs-dcp-longterm.zip:
+mxs-dcp-longterm.zip: check_version
 	@if test "${IMX}" = "imx6ull"; then \
 		wget ${MXS_DCP_REPO}/archive/longterm.zip -O mxs-dcp-longterm.zip && \
 		unzip mxs-dcp-longterm; \
 	fi
 
-caam-keyblob-master.zip:
+caam-keyblob-master.zip: check_version
 	@if test "${IMX}" = "imx6ul"; then \
 		wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip && \
 		unzip caam-keyblob-master; \
