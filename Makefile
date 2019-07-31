@@ -1,12 +1,12 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.19.60
+LINUX_VER=4.19.63
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=inversepath
 LOCALVERSION=-0
-UBOOT_VER=2019.04
+UBOOT_VER=2019.07
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
@@ -120,7 +120,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
 		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
 
-u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
+u-boot-${UBOOT_VER}/u-boot-dtb.imx: check_version u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xvf u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
@@ -128,9 +128,15 @@ u-boot-${UBOOT_VER}/u-boot.imx: u-boot-${UBOOT_VER}.tar.bz2
 		cd u-boot-${UBOOT_VER} && make usbarmory_config; \
 	elif test "${V}" = "mark-two"; then \
 		cd u-boot-${UBOOT_VER} && \
-		wget ${USBARMORY_REPO}/software/u-boot/0001-USB-armory-mark-two-alpha-${BOOT}.patch && \
-		patch -p1 < 0001-USB-armory-mark-two-alpha-${BOOT}.patch && \
+		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+		wget ${USBARMORY_REPO}/software/u-boot/0001-Drop-linker-generated-array-creation-when-CONFIG_CMD.patch && \
+		patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+		patch -p1 < 0001-Drop-linker-generated-array-creation-when-CONFIG_CMD.patch && \
 		make usbarmory-mark-two_defconfig; \
+		if test "${BOOT}" = "eMMC"; then \
+			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' .config; \
+			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' .config; \
+		fi \
 	fi
 	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
 
@@ -213,12 +219,13 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s ${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb ${IMX}-usbarmory.dtb
 	rm linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/{build,source}
+	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
-u-boot: u-boot-${UBOOT_VER}/u-boot.imx
+u-boot: u-boot-${UBOOT_VER}/u-boot-dtb.imx
 
-finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.imx
-	sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc
+finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot-dtb.imx
+	sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc
 
 compress:
 	xz -k usbarmory-${IMG_VERSION}.raw
