@@ -41,7 +41,7 @@ check_version:
 		echo "invalid target - V options are: mark-one, mark-two"; \
 		exit 1; \
 	fi
-	echo "target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT}"; \
+	@echo "target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT}"
 
 usbarmory-${IMG_VERSION}.raw:
 	truncate -s 3500MiB usbarmory-${IMG_VERSION}.raw
