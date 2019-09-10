@@ -143,19 +143,19 @@ u-boot-${UBOOT_VER}/u-boot-dtb.imx: check_version u-boot-${UBOOT_VER}.tar.bz2
 mxc-scc2-master.zip: check_version
 	@if test "${IMX}" = "imx53"; then \
 		wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip && \
-		unzip mxc-scc2-master; \
+		unzip -o mxc-scc2-master; \
 	fi
 
 mxs-dcp-longterm.zip: check_version
 	@if test "${IMX}" = "imx6ull"; then \
 		wget ${MXS_DCP_REPO}/archive/longterm.zip -O mxs-dcp-longterm.zip && \
-		unzip mxs-dcp-longterm; \
+		unzip -o mxs-dcp-longterm; \
 	fi
 
 caam-keyblob-master.zip: check_version
 	@if test "${IMX}" = "imx6ul"; then \
 		wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip && \
-		unzip caam-keyblob-master; \
+		unzip -o caam-keyblob-master; \
 	fi
 
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
@@ -216,8 +216,8 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	@if test "${IMX}" = "imx6ul"; then \
 		cd caam-keyblob-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
-	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
-	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -s ${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb ${IMX}-usbarmory.dtb
+	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
+	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf ${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb ${IMX}-usbarmory.dtb
 	rm linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/{build,source}
 	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
