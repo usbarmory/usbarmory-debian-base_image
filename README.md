@@ -10,7 +10,7 @@ Pre-compiled releases are [available](https://github.com/inversepath/usbarmory-d
 A Debian 9 installation with the following packages:
 
 ```
-bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git gnupg make parted qemu-user-static wget xz-utils zip debootstrap sudo dirmngr bison flex libssl-dev
+bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git gnupg make parted qemu-user-static wget xz-utils zip debootstrap sudo dirmngr bison flex libssl-dev kmod
 ```
 
 Import the Linux signing GPG key:
