@@ -23,10 +23,10 @@ Import the U-Boot signing GPG key:
 gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 ```
 
-## Docker building Pre-requisites
+## Docker pre-requisites
 
-If you want to build image under Docker, you need to use --privileged option since it needs privileges for handling loop device.
-For example:
+When building the image under Docker the `--privileged` option is required to
+give privileges for handling loop devices, example:
 
 ```
 docker run -it --privileged --name armory debian:9
