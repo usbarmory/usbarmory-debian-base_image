@@ -29,7 +29,8 @@ When building the image under Docker the `--privileged` option is required to
 give privileges for handling loop devices, example:
 
 ```
-docker run -it --privileged --name armory debian:9
+docker build --rm -t armory ./
+docker run -it --privileged -v $(pwd):/opt/armory --name armory armory
 ```
 
 ## Building
