@@ -55,6 +55,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo /sbin/losetup -d $(LOSETUP_DEV)
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
+	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
 		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates \
 		--arch=armhf stretch rootfs http://ftp.debian.org/debian/
