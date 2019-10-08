@@ -120,7 +120,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
 		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
 
-u-boot-${UBOOT_VER}/u-boot-dtb.imx: check_version u-boot-${UBOOT_VER}.tar.bz2
+u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xvf u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
@@ -222,10 +222,14 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
-u-boot: u-boot-${UBOOT_VER}/u-boot-dtb.imx
+u-boot: u-boot-${UBOOT_VER}/u-boot.bin
 
-finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot-dtb.imx
-	sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc
+finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.bin
+	@if test "${V}" = "mark-one"; then \
+		sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
+	elif test "${V}" = "mark-two"; then \
+		sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
+	fi
 
 compress:
 	xz -k usbarmory-${IMG_VERSION}.raw
