@@ -14,6 +14,7 @@ MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
 MXS_DCP_REPO=https://github.com/inversepath/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/inversepath/caam-keyblob
 IMG_VERSION=${V}-debian_stretch-base_image-$(shell /bin/date -u "+%Y%m%d")
+LOSETUP_DEV=$(shell /sbin/losetup -f)
 
 .DEFAULT_GOAL := all
 
@@ -49,11 +50,12 @@ usbarmory-${IMG_VERSION}.raw:
 	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mkpart primary ext4 5M 100%
 
 debian: check_version usbarmory-${IMG_VERSION}.raw
-	sudo /sbin/losetup /dev/loop0 usbarmory-${IMG_VERSION}.raw -o 5242880 --sizelimit 3500MiB
-	sudo /sbin/mkfs.ext4 -F /dev/loop0
-	sudo /sbin/losetup -d /dev/loop0
+	sudo /sbin/losetup $(LOSETUP_DEV) usbarmory-${IMG_VERSION}.raw -o 5242880 --sizelimit 3500MiB
+	sudo /sbin/mkfs.ext4 -F $(LOSETUP_DEV)
+	sudo /sbin/losetup -d $(LOSETUP_DEV)
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
+	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
 		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates \
 		--arch=armhf stretch rootfs http://ftp.debian.org/debian/
@@ -107,7 +109,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 	@if [ ! -d "linux-${LINUX_VER}" ]; then \
 		unxz --keep linux-${LINUX_VER}.tar.xz; \
 		gpg --verify linux-${LINUX_VER}.tar.sign; \
-		tar xvf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
+		tar xf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
 	fi
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
@@ -122,7 +124,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 
 u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
-	tar xvf u-boot-${UBOOT_VER}.tar.bz2
+	tar xf u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
 	@if test "${V}" = "mark-one"; then \
 		cd u-boot-${UBOOT_VER} && make usbarmory_config; \
@@ -243,4 +245,5 @@ clean: check_version
 	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
 	-rm -fr mxc-scc2-master* mxs-dcp-longterm* caam-keyblob-master*
 	-rm -f usbarmory-${V}-debian_stretch-base_image-*.raw
+	-sudo umount -f rootfs
 	-rmdir rootfs
