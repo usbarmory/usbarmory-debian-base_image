@@ -1,0 +1,99 @@
+name: Build-All
+on: [push]
+
+# TODO:
+# - Verify output binary
+# - Create releases if pushed to Master (w/binary attachment and sig)
+#   This would require a private key in repo.  Maybe a short-expiring sub-key?
+#
+
+# We are using Matrix build here on Github Actions for parallel execution.
+# We have 3 parameters: device, arch, boot
+# While the Mark II allows for 4 builds (imx6ull, imx6ul) this matrix becomes
+# an issue with the Mark One because the Makefile errors if you pass eMMC as
+# the boot parameter or imx6ull/imx6ul as the arch.
+#
+# +----------+---------+------+------+
+# |  device  |  arch   | boot |  CI  |
+# +----------+---------+------+------+
+# | mark-one | imx53   | uSD  | PASS |
+# | mark-one | imx53   | eMMC | FAIL |
+# | mark-one | imx6ul  | uSD  | FAIL |
+# | mark-one | imx6ul  | eMMC | FAIL |
+# | mark-one | imx6ull | uSD  | FAIL |
+# | mark-one | imx6ull | eMMC | FAIL |
+# +----------+---------+------+------+
+# | mark-two | imx53   | uSD  | FAIL |
+# | mark-two | imx53   | eMMC | FAIL |
+# | mark-two | imx6ul  | uSD  | PASS |
+# | mark-two | imx6ul  | eMMC | PASS |
+# | mark-two | imx6ull | uSD  | PASS |
+# | mark-two | imx6ull | eMMC | PASS |
+# +----------+---------+------+------+
+#
+# Therefore, there are only 5 successful builds, and 7 expected failed
+# builds per the above matrix.  However, Github Actions doesn't have a clean
+# way of testing for failed builds with specific matrix params.  Therefore,
+# we need two "jobs" below.  One for mark one, and one for mark two.
+#
+
+jobs:
+  mark-one:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [imx53]
+        boot: [uSD]
+        device: [mark-one]
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
+          gnupg make parted qemu-user-static wget xz-utils zip debootstrap \
+          sudo dirmngr bison flex libssl-dev kmod
+
+    - name: Import Signing Keys
+      run: |  # public key servers keep timing out w/parallel calls
+        retry=0; until [ $retry -ge 5 ]; do
+          gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E 87F9F635D31D7652 && exit 0
+          retry=$[$retry+1]
+          sleep $((1 + RANDOM % 30))
+        done
+        exit 99
+    
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+
+  mark-two:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [imx6ul, imx6ull]
+        boot: [uSD, eMMC]
+        device: [mark-two]
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
+          gnupg make parted qemu-user-static wget xz-utils zip debootstrap \
+          sudo dirmngr bison flex libssl-dev kmod
+
+    - name: Import Signing Keys
+      run: |  # public key servers keep timing out w/parallel calls
+        retry=0; until [ $retry -ge 5 ]; do
+          gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E 87F9F635D31D7652 && exit 0
+          retry=$[$retry+1]
+          sleep $((1 + RANDOM % 30))
+        done
+        exit 99
+    
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
