@@ -35,14 +35,14 @@ docker run -it --privileged -v $(pwd):/opt/armory --name armory armory
 
 ## Building
 
-Launch the following command to download and build the image:
+Launch the following command to download assets and build the image:
 
 ```
-# For the USB armory Mk II (external microSD)
-make all V=mark-two IMX=imx6ull BOOT=uSD
-
 # For the USB armory Mk II (internal eMMC)
 make all V=mark-two IMX=imx6ull BOOT=eMMC
+
+# For the USB armory Mk II (external microSD)
+make all V=mark-two IMX=imx6ull BOOT=uSD
 
 # For the USB armory Mk I
 make all V=mark-one IMX=imx53
@@ -51,11 +51,14 @@ make all V=mark-one IMX=imx53
 The following output files are produced:
 
 ```
-# For the USB armory Mk II
-usbarmory-mark-two-debian_stretch-base_image-YYYYMMDD.raw
+# For the USB armory Mk II (internal eMMC)
+usbarmory-mark-two-emmc-debian_stretch-base_image-YYYYMMDD.raw
+
+# For the USB armory Mk II (external microSD)
+usbarmory-mark-two-usd-debian_stretch-base_image-YYYYMMDD.raw
 
 # For the USB armory Mk I
-usbarmory-mark-one-debian_stretch-base_image-YYYYMMDD.raw
+usbarmory-mark-one-usd-debian_stretch-base_image-YYYYMMDD.raw
 ```
 
 ## Installation
