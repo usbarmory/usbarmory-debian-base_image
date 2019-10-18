@@ -58,14 +58,10 @@ jobs:
           sudo dirmngr bison flex libssl-dev kmod
 
     - name: Import Signing Keys
-      run: |  # public key servers keep timing out w/parallel calls
-        retry=0; until [ $retry -ge 5 ]; do
-          gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E 87F9F635D31D7652 && exit 0
-          retry=$[$retry+1]
-          sleep $((1 + RANDOM % 30))
-        done
-        exit 99
-    
+      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
+        wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
+
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
 
   mark-two:
@@ -88,12 +84,8 @@ jobs:
           sudo dirmngr bison flex libssl-dev kmod
 
     - name: Import Signing Keys
-      run: |  # public key servers keep timing out w/parallel calls
-        retry=0; until [ $retry -ge 5 ]; do
-          gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E 87F9F635D31D7652 && exit 0
-          retry=$[$retry+1]
-          sleep $((1 + RANDOM % 30))
-        done
-        exit 99
-    
+      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
+        wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
+
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
