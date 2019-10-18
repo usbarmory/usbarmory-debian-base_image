@@ -1,4 +1,4 @@
-# USB armory Debian base image
+# USB armory Debian base image [![Build Status](https://github.com/inversepath/usbarmory-debian-base_image/workflows/.github/workflows/build-all.yml/badge.svg)](https://github.com/inversepath/usbarmory-debian-base_image/actions)
 
 The Makefile in this repository allows generation of a basic Debian
 installation for the [USB armory](https://github.com/inversepath/usbarmory).
