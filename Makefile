@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.19.78
+LINUX_VER=4.19.82
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=inversepath
