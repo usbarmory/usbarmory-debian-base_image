@@ -63,7 +63,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
 	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
 	sudo install -m 644 -o root -g root conf/usbarmory.conf rootfs/etc/modprobe.d/usbarmory.conf
-	sudo sed -i -e 's/INTERFACES=""/INTERFACES="usb0"/' rootfs/etc/default/isc-dhcp-server
+	sudo sed -i -e 's/INTERFACESv4=""/INTERFACESv4="usb0"/' rootfs/etc/default/isc-dhcp-server
 	echo "tmpfs /tmp tmpfs defaults 0 0" | sudo tee rootfs/etc/fstab
 	echo -e "\nUseDNS no" | sudo tee -a rootfs/etc/ssh/sshd_config
 	echo "nameserver 8.8.8.8" | sudo tee rootfs/etc/resolv.conf
