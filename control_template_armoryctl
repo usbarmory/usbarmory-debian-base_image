@@ -1,0 +1,5 @@
+Package: armoryctl
+Version: YYYY
+Maintainer: Andrej Rosano <andrej.rosano@f-secure.com>
+Architecture: armhf
+Description: USB armory Mk II hardware control tool

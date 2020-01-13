@@ -7,9 +7,11 @@ KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2019.07
+ARMORYCTL_VER=1.0
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
+ARMORYCTL_REPO=https://github.com/f-secure-foundry/armoryctl
 MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
 MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
@@ -90,8 +92,13 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo chroot rootfs /usr/sbin/useradd -s /bin/bash -p `sudo chroot rootfs mkpasswd -m sha-512 usbarmory` -m usbarmory
 	sudo rm rootfs/etc/ssh/ssh_host_*
 	sudo cp linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb rootfs/tmp/
+	sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/
 	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+	@if test "${V}" = "mark-two"; then \
+		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb
+	fi
 	sudo rm rootfs/tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+	sudo rm rootfs/tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
 	sudo rm rootfs/usr/bin/qemu-arm-static
@@ -160,6 +167,12 @@ caam-keyblob-master.zip: check_version
 		unzip -o caam-keyblob-master; \
 	fi
 
+armoryctl-${ARMORYCTL_VER}.zip: check_version
+	@if test "${V}" = "mark-two"; then \
+		wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O armoryctl-v${ARMORYCTL_VER}.zip && \
+		unzip -o armoryctl-v${ARMORYCTL_VER}.zip; \
+	fi
+
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 mxc-scc2: mxc-scc2-master.zip linux
@@ -177,6 +190,11 @@ caam-keyblob: caam-keyblob-master.zip linux
 		cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
 	fi
 
+armoryctl: armoryctl-${ARMORYCTL_VER}.zip 
+	@if test "${V}" = "mark-two"; then \
+		cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm make; \
+	fi
+
 extra-dtb: check_version linux
 	@if test "${V}" = "mark-one"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config; \
@@ -190,7 +208,7 @@ extra-dtb: check_version linux
 
 linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
-	cat control_template | \
+	cat control_template_linux | \
 		sed -e 's/XXXX/${LINUX_VER_MAJOR}/'          | \
 		sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' | \
 		sed -e 's/USB armory/USB armory ${V}/' \
@@ -224,6 +242,15 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
+armoryctl-deb: check_version armoryctl
+	mkdir -p armoryctl_${ARMORYCTL_VER}_armhf/{DEBIAN,sbin}
+	cat control_template_armoryctl | \
+		sed -e 's/YYYY/${ARMORYCTL_VER}/' \
+		> armoryctl_${ARMORYCTL_VER}_armhf/DEBIAN/control
+	cp -r armoryctl-${ARMORYCTL_VER}/armoryctl armoryctl_${ARMORYCTL_VER}_armhf/sbin
+	chmod 755 armoryctl_${ARMORYCTL_VER}_armhf/DEBIAN
+	fakeroot dpkg-deb -b armoryctl_${ARMORYCTL_VER}_armhf armoryctl_${ARMORYCTL_VER}_armhf.deb
+
 u-boot: u-boot-${UBOOT_VER}/u-boot.bin
 
 finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.bin
@@ -237,12 +264,13 @@ compress:
 	xz -k usbarmory-${IMG_VERSION}.raw
 	zip -j usbarmory-${IMG_VERSION}.raw.zip usbarmory-${IMG_VERSION}.raw
 
-all: check_version linux-deb debian u-boot finalize
+all: check_version armoryctl-deb linux-deb debian u-boot finalize
 
 clean: check_version
 	-rm -fr linux-${LINUX_VER}*
 	-rm -fr u-boot-${UBOOT_VER}*
 	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
+	-rm -fr armoryctl*
 	-rm -fr mxc-scc2-master* mxs-dcp-longterm* caam-keyblob-master*
 	-rm -f usbarmory-${V}-debian_stretch-base_image-*.raw
 	-sudo umount -f rootfs
