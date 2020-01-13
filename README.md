@@ -1,9 +1,9 @@
-# USB armory Debian base image [![Build Status](https://github.com/inversepath/usbarmory-debian-base_image/workflows/Build-All/badge.svg)](https://github.com/inversepath/usbarmory-debian-base_image/actions)
+# USB armory Debian base image [![Build Status](https://github.com/f-secure-foundry/usbarmory-debian-base_image/workflows/Build-All/badge.svg)](https://github.com/f-secure-foundry/usbarmory-debian-base_image/actions)
 
 The Makefile in this repository allows generation of a basic Debian
-installation for the [USB armory](https://github.com/inversepath/usbarmory).
+installation for the [USB armory](https://github.com/f-secure-foundry/usbarmory).
 
-Pre-compiled releases are [available](https://github.com/inversepath/usbarmory-debian-base_image/releases).
+Pre-compiled releases are [available](https://github.com/f-secure-foundry/usbarmory-debian-base_image/releases).
 
 ## Pre-requisites
 
@@ -103,7 +103,7 @@ imx_usb u-boot-20*.*/u-boot-dtb.imx
 ```
 
 On the USB armory Mk II serial console, accessible through the
-[debug accessory](https://github.com/inversepath/usbarmory/tree/master/hardware/mark-two-debug-accessory),
+[debug accessory](https://github.com/f-secure-foundry/usbarmory/tree/master/hardware/mark-two-debug-accessory),
 start the USB storage emulation (UMS) mode:
 
 ```
@@ -111,7 +111,7 @@ start the USB storage emulation (UMS) mode:
 ```
 
 Alternatively, if external serial console access is not available, a
-[patch](https://github.com/inversepath/usbarmory/tree/master/software/u-boot/0001-USB-armory-mark-two-alpha-UMS.patch)
+[patch](https://github.com/f-secure-foundry/usbarmory/tree/master/software/u-boot/0001-USB-armory-mark-two-alpha-UMS.patch)
 to automatically enable UMS mode can be applied to U-Boot 2019.04.
 
 Once in UMS mode, the host kernel should detect a USB storage device:
@@ -141,18 +141,18 @@ To aid initial testing the base image configures the board LED to reflect CPU
 load average, via the Linux Heartbeat Trigger driver. In case this is
 undesired, the heartbeat can be disabled by removing the `ledtrig_heartbeat`
 module in `/etc/modules`. More information about LED control
-[here](https://github.com/inversepath/usbarmory/wiki/GPIOs#led-control).
+[here](https://github.com/f-secure-foundry/usbarmory/wiki/GPIOs#led-control).
 
 ## Resizing
 
 The default image is 4GB of size, to use the full microSD/eMMC space a new partition
 can be added or the existing one can be resized as described in the USB armory
-[FAQ](https://github.com/inversepath/usbarmory/wiki/Frequently-Asked-Questions-(FAQ)).
+[FAQ](https://github.com/f-secure-foundry/usbarmory/wiki/Frequently-Asked-Questions-(FAQ)).
 
 ## Additional resources
 
-[Project page](https://inversepath.com/usbarmory)  
-[Documentation](https://github.com/inversepath/usbarmory/wiki)  
-[Board schematics, layout and support files](https://github.com/inversepath/usbarmory)  
-[INTERLOCK - file encryption front end](https://github.com/inversepath/interlock)  
+[Project page](https://f-secure-foundry.com/usbarmory)  
+[Documentation](https://github.com/f-secure-foundry/usbarmory/wiki)  
+[Board schematics, layout and support files](https://github.com/f-secure-foundry/usbarmory)  
+[INTERLOCK - file encryption front end](https://github.com/f-secure-foundry/interlock)  
 [Discussion group](https://groups.google.com/d/forum/usbarmory)  

@@ -4,15 +4,15 @@ JOBS=2
 LINUX_VER=4.19.90
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
-KBUILD_BUILD_HOST=inversepath
+KBUILD_BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2019.07
 APT_GPG_KEY=CEADE0CF01939B21
 
-USBARMORY_REPO=https://raw.githubusercontent.com/inversepath/usbarmory/master
-MXC_SCC2_REPO=https://github.com/inversepath/mxc-scc2
-MXS_DCP_REPO=https://github.com/inversepath/mxs-dcp
-CAAM_KEYBLOB_REPO=https://github.com/inversepath/caam-keyblob
+USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
+MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
+MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
+CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
 IMG_VERSION=${V}-debian_stretch-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell /sbin/losetup -f)
 

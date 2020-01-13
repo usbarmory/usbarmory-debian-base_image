@@ -1,4 +1,4 @@
 deb http://ftp.debian.org/debian stretch main
 deb http://ftp.debian.org/debian stretch-updates main
 deb http://security.debian.org stretch/updates main
-deb https://inversepath.github.io/debian stable usbarmory
+deb https://f-secure-foundry.github.io/debian stable usbarmory
