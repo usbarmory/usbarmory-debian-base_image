@@ -95,7 +95,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/
 	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 	@if test "${V}" = "mark-two"; then \
-		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb
+		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
 	fi
 	sudo rm rootfs/tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 	sudo rm rootfs/tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb
@@ -190,7 +190,7 @@ caam-keyblob: caam-keyblob-master.zip linux
 		cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
 	fi
 
-armoryctl: armoryctl-${ARMORYCTL_VER}.zip 
+armoryctl: armoryctl-${ARMORYCTL_VER}.zip
 	@if test "${V}" = "mark-two"; then \
 		cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm make; \
 	fi
@@ -264,7 +264,11 @@ compress:
 	xz -k usbarmory-${IMG_VERSION}.raw
 	zip -j usbarmory-${IMG_VERSION}.raw.zip usbarmory-${IMG_VERSION}.raw
 
+ifeq ($(V),mark-two)
 all: check_version armoryctl-deb linux-deb debian u-boot finalize
+else
+all: check_version linux-deb debian u-boot finalize
+endif
 
 clean: check_version
 	-rm -fr linux-${LINUX_VER}*
