@@ -85,6 +85,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
 	echo "g_ether" | sudo tee -a rootfs/etc/modules
+	echo "i2c-dev" | sudo tee -a rootfs/etc/modules
 	echo -e 'auto usb0\nallow-hotplug usb0\niface usb0 inet static\n  address 10.0.0.1\n  netmask 255.255.255.0\n  gateway 10.0.0.2'| sudo tee -a rootfs/etc/network/interfaces
 	echo "usbarmory" | sudo tee rootfs/etc/hostname
 	echo "usbarmory  ALL=(ALL) NOPASSWD: ALL" | sudo tee -a rootfs/etc/sudoers
