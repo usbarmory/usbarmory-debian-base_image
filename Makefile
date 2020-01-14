@@ -92,13 +92,13 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo chroot rootfs /usr/sbin/useradd -s /bin/bash -p `sudo chroot rootfs mkpasswd -m sha-512 usbarmory` -m usbarmory
 	sudo rm rootfs/etc/ssh/ssh_host_*
 	sudo cp linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb rootfs/tmp/
-	sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/
 	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
-	@if test "${V}" = "mark-two"; then \
-		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
-	fi
 	sudo rm rootfs/tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
-	sudo rm rootfs/tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb
+	@if test "${V}" = "mark-two"; then \
+		sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/
+		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
+		sudo rm rootfs/tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb
+	fi
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
 	sudo rm rootfs/usr/bin/qemu-arm-static
