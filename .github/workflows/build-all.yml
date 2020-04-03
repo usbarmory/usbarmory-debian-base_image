@@ -9,9 +9,9 @@ on: [push]
 
 # We are using Matrix build here on Github Actions for parallel execution.
 # We have 3 parameters: device, arch, boot
-# While the Mark II allows for 4 builds (imx6ull, imx6ul) this matrix becomes
+# While the Mark II allows for 4 builds (imx6ulz, imx6ul) this matrix becomes
 # an issue with the Mark One because the Makefile errors if you pass eMMC as
-# the boot parameter or imx6ull/imx6ul as the arch.
+# the boot parameter or imx6ulz/imx6ul as the arch.
 #
 # +----------+---------+------+------+
 # |  device  |  arch   | boot |  CI  |
@@ -20,15 +20,15 @@ on: [push]
 # | mark-one | imx53   | eMMC | FAIL |
 # | mark-one | imx6ul  | uSD  | FAIL |
 # | mark-one | imx6ul  | eMMC | FAIL |
-# | mark-one | imx6ull | uSD  | FAIL |
-# | mark-one | imx6ull | eMMC | FAIL |
+# | mark-one | imx6ulz | uSD  | FAIL |
+# | mark-one | imx6ulz | eMMC | FAIL |
 # +----------+---------+------+------+
 # | mark-two | imx53   | uSD  | FAIL |
 # | mark-two | imx53   | eMMC | FAIL |
 # | mark-two | imx6ul  | uSD  | PASS |
 # | mark-two | imx6ul  | eMMC | PASS |
-# | mark-two | imx6ull | uSD  | PASS |
-# | mark-two | imx6ull | eMMC | PASS |
+# | mark-two | imx6ulz | uSD  | PASS |
+# | mark-two | imx6ulz | eMMC | PASS |
 # +----------+---------+------+------+
 #
 # Therefore, there are only 5 successful builds, and 7 expected failed
@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [imx6ul, imx6ull]
+        arch: [imx6ul, imx6ulz]
         boot: [uSD, eMMC]
         device: [mark-two]
     steps:
