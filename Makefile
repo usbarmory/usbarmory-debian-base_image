@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=4.19.95
+LINUX_VER=5.4.29
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
@@ -15,7 +15,7 @@ ARMORYCTL_REPO=https://github.com/f-secure-foundry/armoryctl
 MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
 MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
-IMG_VERSION=${V}-debian_stretch-base_image-$(shell /bin/date -u "+%Y%m%d")
+IMG_VERSION=${V}-debian_buster-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell /sbin/losetup -f)
 
 .DEFAULT_GOAL := all
@@ -36,8 +36,8 @@ check_version:
 		if test "${BOOT}" != "uSD" && test "${BOOT}" != eMMC; then \
 			echo "invalid target, mark-two BOOT options are: uSD, eMMC"; \
 			exit 1; \
-		elif test "${IMX}" != "imx6ul" && test "${IMX}" != "imx6ull"; then \
-			echo "invalid target, mark-two IMX options are: imx6ul, imx6ull"; \
+		elif test "${IMX}" != "imx6ul" && test "${IMX}" != "imx6ulz"; then \
+			echo "invalid target, mark-two IMX options are: imx6ul, imx6ulz"; \
 			exit 1; \
 		fi \
 	else \
@@ -59,8 +59,8 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
 	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
-		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates \
-		--arch=armhf stretch rootfs http://ftp.debian.org/debian/
+		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg \
+		--arch=armhf buster rootfs http://ftp.debian.org/debian/
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
 	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
@@ -99,6 +99,11 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 		sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/; \
 		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
 		sudo rm rootfs/tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
+		if test "${BOOT}" = "uSD"; then \
+			echo "/dev/mmcblk0 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
+		else \
+			echo "/dev/mmcblk1 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
+		fi \
 	fi
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
@@ -106,8 +111,8 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo umount rootfs
 
 linux-${LINUX_VER}.tar.xz:
-	wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
-	wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
+	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
+	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
 
 u-boot-${UBOOT_VER}.tar.bz2:
 	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
@@ -156,10 +161,10 @@ mxc-scc2-master.zip: check_version
 		unzip -o mxc-scc2-master; \
 	fi
 
-mxs-dcp-longterm.zip: check_version
-	@if test "${IMX}" = "imx6ull"; then \
-		wget ${MXS_DCP_REPO}/archive/longterm.zip -O mxs-dcp-longterm.zip && \
-		unzip -o mxs-dcp-longterm; \
+mxs-dcp-master.zip: check_version
+	@if test "${IMX}" = "imx6ulz"; then \
+		wget ${MXS_DCP_REPO}/archive/master.zip -O mxs-dcp-master.zip && \
+		unzip -o mxs-dcp-master; \
 	fi
 
 caam-keyblob-master.zip: check_version
@@ -181,9 +186,9 @@ mxc-scc2: mxc-scc2-master.zip linux
 		cd mxc-scc2-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
 	fi
 
-mxs-dcp: mxs-dcp-longterm.zip linux
-	@if test "${IMX}" = "imx6ull"; then \
-		cd mxs-dcp-longterm && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
+mxs-dcp: mxs-dcp-master.zip linux
+	@if test "${IMX}" = "imx6ulz"; then \
+		cd mxs-dcp-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
 	fi
 
 caam-keyblob: caam-keyblob-master.zip linux
@@ -231,14 +236,15 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-scc2.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-scc2-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cd mxc-scc2-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
-	@if test "${IMX}" = "imx6ull"; then \
-		cd mxs-dcp-longterm && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
+	@if test "${IMX}" = "imx6ulz"; then \
+		cd mxs-dcp-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ul"; then \
 		cd caam-keyblob-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf ${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb ${IMX}-usbarmory.dtb
+	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf ${IMX}-usbarmory.dtb imx6ull-usbarmory.dtb
 	rm linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/{build,source}
 	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
@@ -276,7 +282,7 @@ clean: check_version
 	-rm -fr u-boot-${UBOOT_VER}*
 	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
 	-rm -fr armoryctl*
-	-rm -fr mxc-scc2-master* mxs-dcp-longterm* caam-keyblob-master*
-	-rm -f usbarmory-${V}-debian_stretch-base_image-*.raw
+	-rm -fr mxc-scc2-master* mxs-dcp-master* caam-keyblob-master*
+	-rm -f usbarmory-${V}-debian_buster-base_image-*.raw
 	-sudo umount -f rootfs
 	-rmdir rootfs
