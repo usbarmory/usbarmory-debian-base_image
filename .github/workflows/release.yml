@@ -1,40 +1,16 @@
-# We are using Matrix build here on Github Actions for parallel execution.
-# We have 3 parameters: device, arch, boot
-# While the Mark II allows for 4 builds (imx6ulz, imx6ul) this matrix becomes
-# an issue with the Mark One because the Makefile errors if you pass eMMC as
-# the boot parameter or imx6ulz/imx6ul as the arch.
+# This workflow will build everything, package, compress, sign, hash,
+# and then upload all assets to the release.
 #
-# +----------+---------+------+------+
-# |  device  |  arch   | boot |  CI  |
-# +----------+---------+------+------+
-# | mark-one | imx53   | uSD  | PASS |
-# | mark-one | imx53   | eMMC | FAIL |
-# | mark-one | imx6ul  | uSD  | FAIL |
-# | mark-one | imx6ul  | eMMC | FAIL |
-# | mark-one | imx6ulz | uSD  | FAIL |
-# | mark-one | imx6ulz | eMMC | FAIL |
-# +----------+---------+------+------+
-# | mark-two | imx53   | uSD  | FAIL |
-# | mark-two | imx53   | eMMC | FAIL |
-# | mark-two | imx6ul  | uSD  | PASS |
-# | mark-two | imx6ul  | eMMC | PASS |
-# | mark-two | imx6ulz | uSD  | PASS |
-# | mark-two | imx6ulz | eMMC | PASS |
-# +----------+---------+------+------+
-#
-# Therefore, there are only 5 successful builds, and 7 expected failed
-# builds per the above matrix.  However, Github Actions doesn't have a clean
-# way of testing for failed builds with specific matrix params.  Therefore,
-# we need two "jobs" below.  One for mark one, and one for mark two.
+# It is triggered when you create a release.
 #
 
-name: Build-All
+name: Release
 on:
-  push:
-    branches:
-      - '*'
+  release:
+    types: [published]
 
 jobs:
+
   mark-one:
     runs-on: ubuntu-18.04
     strategy:
@@ -59,14 +35,26 @@ jobs:
         wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} release
+  
+    - name: Organize Release files to Upload
+      run: |
+        rm *.raw
+        mkdir -p release/
+        mv usbarmory* release/
+        ls -la release/
+
+    - uses: eduncan911/release-asset-action@1.0.0
+      with:
+        pattern: "release/*"
+        github-token: ${{ secrets.GITHUB_TOKEN_FOR_RELEASES }}
 
   mark-two:
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
       matrix:
-        arch: [imx6ul, imx6ulz]
+        arch: [imx6ull]
         boot: [uSD, eMMC]
         device: [mark-two]
     steps:
@@ -85,4 +73,16 @@ jobs:
         wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} release
+
+    - name: Organize Release files to Upload
+      run: |
+        rm *.raw
+        mkdir -p release/
+        mv usbarmory* release/
+        ls -la release/
+
+    - uses: eduncan911/release-asset-action@1.0.0
+      with:
+        pattern: "release/*"
+        github-token: ${{ secrets.GITHUB_TOKEN_FOR_RELEASES }}
