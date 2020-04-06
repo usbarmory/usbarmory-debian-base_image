@@ -154,7 +154,7 @@ can be added or the existing one can be resized as described in the USB armory
 
 ## Additional resources
 
-[Project page](https://f-secure-foundry.com/usbarmory)  
+[Project page](https://foundry.f-secure.com/usbarmory)  
 [Documentation](https://github.com/f-secure-foundry/usbarmory/wiki)  
 [Board schematics, layout and support files](https://github.com/f-secure-foundry/usbarmory)  
 [INTERLOCK - file encryption front end](https://github.com/f-secure-foundry/interlock)  
