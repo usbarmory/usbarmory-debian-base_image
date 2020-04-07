@@ -39,10 +39,10 @@ Launch the following command to download assets and build the image:
 
 ```
 # For the USB armory Mk II (internal eMMC)
-make all V=mark-two IMX=imx6ull BOOT=eMMC
+make all V=mark-two IMX=imx6ulz BOOT=eMMC
 
 # For the USB armory Mk II (external microSD)
-make all V=mark-two IMX=imx6ull BOOT=uSD
+make all V=mark-two IMX=imx6ulz BOOT=uSD
 
 # For the USB armory Mk I
 make all V=mark-one IMX=imx53
