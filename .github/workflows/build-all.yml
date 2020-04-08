@@ -1,3 +1,12 @@
+name: Build-All
+on: [push]
+
+# TODO:
+# - Verify output binary
+# - Create releases if pushed to Master (w/binary attachment and sig)
+#   This would require a private key in repo.  Maybe a short-expiring sub-key?
+#
+
 # We are using Matrix build here on Github Actions for parallel execution.
 # We have 3 parameters: device, arch, boot
 # While the Mark II allows for 4 builds (imx6ulz, imx6ul) this matrix becomes
@@ -28,12 +37,6 @@
 # we need two "jobs" below.  One for mark one, and one for mark two.
 #
 
-name: Build-All
-on:
-  push:
-    branches:
-      - '*'
-
 jobs:
   mark-one:
     runs-on: ubuntu-18.04
@@ -44,7 +47,7 @@ jobs:
         boot: [uSD]
         device: [mark-one]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
 
     - name: Prerequisites
       run: |
@@ -70,7 +73,7 @@ jobs:
         boot: [uSD, eMMC]
         device: [mark-two]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
 
     - name: Prerequisites
       run: |

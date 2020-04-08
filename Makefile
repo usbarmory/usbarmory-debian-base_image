@@ -15,14 +15,13 @@ ARMORYCTL_REPO=https://github.com/f-secure-foundry/armoryctl
 MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
 MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
-IMG_VERSION=${V}-${BOOT_PARSED}-debian_buster-base_image-$(shell /bin/date -u "+%Y%m%d")
+IMG_VERSION=${V}-debian_buster-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell /sbin/losetup -f)
 
 .DEFAULT_GOAL := all
 
 V ?= mark-two
 BOOT ?= uSD
-BOOT_PARSED=$(shell echo "${BOOT}" | tr '[:upper:]' '[:lower:]')
 
 check_version:
 	@if test "${V}" = "mark-one"; then \
@@ -270,9 +269,7 @@ finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.bin
 
 compress:
 	xz -k usbarmory-${IMG_VERSION}.raw
-
-release: check_version all compress
-	sha256sum usbarmory-${IMG_VERSION}.raw.xz > usbarmory-${IMG_VERSION}.raw.xz.sha256
+	zip -j usbarmory-${IMG_VERSION}.raw.zip usbarmory-${IMG_VERSION}.raw
 
 ifeq ($(V),mark-two)
 all: check_version armoryctl-deb linux-deb debian u-boot finalize
@@ -285,7 +282,7 @@ clean: check_version
 	-rm -fr u-boot-${UBOOT_VER}*
 	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
 	-rm -fr armoryctl*
-	-rm -fr mxc-scc2-master* mxs-dcp-longterm* caam-keyblob-master*
-	-rm -f usbarmory-${V}-${BOOT_PARSED}-debian_buster-base_image-*.raw
+	-rm -fr mxc-scc2-master* mxs-dcp-master* caam-keyblob-master*
+	-rm -f usbarmory-${V}-debian_buster-base_image-*.raw
 	-sudo umount -f rootfs
 	-rmdir rootfs
