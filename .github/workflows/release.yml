@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [imx6ulz]
+        arch: [imx6ull]
         boot: [uSD, eMMC]
         device: [mark-two]
     steps:
