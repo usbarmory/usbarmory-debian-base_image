@@ -78,8 +78,8 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	@if test "${V}" = "mark-two"; then \
 		sudo chroot rootfs systemctl mask haveged.service; \
 	fi
-	sudo wget http://keys.inversepath.com/gpg-andrej.asc -O rootfs/tmp/gpg-andrej.asc
-	sudo wget http://keys.inversepath.com/gpg-andrea.asc -O rootfs/tmp/gpg-andrea.asc
+	sudo wget https://keys.inversepath.com/gpg-andrej.asc -O rootfs/tmp/gpg-andrej.asc
+	sudo wget https://keys.inversepath.com/gpg-andrea.asc -O rootfs/tmp/gpg-andrea.asc
 	sudo chroot rootfs apt-key add /tmp/gpg-andrej.asc
 	sudo chroot rootfs apt-key add /tmp/gpg-andrea.asc
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
