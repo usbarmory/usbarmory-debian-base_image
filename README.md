@@ -42,10 +42,10 @@ Launch the following command to download and build the image:
 
 ```
 # For the USB armory Mk II (external microSD)
-make all V=mark-two IMX=imx6ull BOOT=uSD
+make all V=mark-two IMX=imx6ulz BOOT=uSD
 
 # For the USB armory Mk II (internal eMMC)
-make all V=mark-two IMX=imx6ull BOOT=eMMC
+make all V=mark-two IMX=imx6ulz BOOT=eMMC
 
 # For the USB armory Mk I
 make all V=mark-one IMX=imx53
@@ -55,10 +55,10 @@ The following output files are produced:
 
 ```
 # For the USB armory Mk II
-usbarmory-mark-two-debian_stretch-base_image-YYYYMMDD.raw
+usbarmory-mark-two-debian_buster-base_image-YYYYMMDD.raw
 
 # For the USB armory Mk I
-usbarmory-mark-one-debian_stretch-base_image-YYYYMMDD.raw
+usbarmory-mark-one-debian_buster-base_image-YYYYMMDD.raw
 ```
 
 ## Installation
@@ -72,12 +72,12 @@ correct one. Errors in target specification will result in disk corruption.
 
 Linux (verify target from terminal using `dmesg`):
 ```
-sudo dd if=usbarmory-*-debian_stretch-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
+sudo dd if=usbarmory-*-debian_buster-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
 ```
 
 Mac OS X (verify target from terminal with `diskutil list`):
 ```
-sudo dd if=usbarmory-*-debian_stretch-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
+sudo dd if=usbarmory-*-debian_buster-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
 ```
 
 On Windows, and other OSes, alternatively the [Etcher](https://etcher.io)

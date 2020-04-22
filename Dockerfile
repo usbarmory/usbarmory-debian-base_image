@@ -1,10 +1,10 @@
-FROM debian:9
+FROM debian:10
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf \
     git gnupg make parted qemu-user-static wget xz-utils zip \
-    debootstrap sudo dirmngr bison flex libssl-dev kmod udev
+    debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio
 
 # install golang
 ARG GOLANG_TARBALL=go1.13.6.linux-amd64.tar.gz
