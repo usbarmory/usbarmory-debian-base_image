@@ -23,6 +23,9 @@ Import the U-Boot signing GPG key:
 gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
 ```
 
+The `loop` Linux kernel module must be enabled/loaded, also mind that the
+Makefile relies on the ability to execute privileged commands via `sudo`.
+
 ## Docker pre-requisites
 
 When building the image under Docker the `--privileged` option is required to
