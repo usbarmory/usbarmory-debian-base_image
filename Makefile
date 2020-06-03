@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=5.4.31
+LINUX_VER=5.4.38
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
@@ -59,7 +59,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
 	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
-		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg \
+		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd \
 		--arch=armhf buster rootfs http://ftp.debian.org/debian/
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
@@ -91,7 +91,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	echo "usbarmory  ALL=(ALL) NOPASSWD: ALL" | sudo tee -a rootfs/etc/sudoers
 	echo -e "127.0.1.1\tusbarmory" | sudo tee -a rootfs/etc/hosts
 # the hash matches password 'usbarmory'
-	sudo chroot rootfs /usr/sbin/useradd -s /bin/bash -p '$6$bE13Mtqs3F$VvaDyPBE6o/Ey0sbyIh5/8tbxBuSiRlLr5rai5M7C70S22HDwBvtu2XOFsvmgRMu.tPdyY6ZcjRrbraF.dWL51' -m usbarmory
+	sudo chroot rootfs /usr/sbin/useradd -s /bin/bash -p '$$6$$bE13Mtqs3F$$VvaDyPBE6o/Ey0sbyIh5/8tbxBuSiRlLr5rai5M7C70S22HDwBvtu2XOFsvmgRMu.tPdyY6ZcjRrbraF.dWL51' -m usbarmory
 	sudo rm rootfs/etc/ssh/ssh_host_*
 	sudo cp linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb rootfs/tmp/
 	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
