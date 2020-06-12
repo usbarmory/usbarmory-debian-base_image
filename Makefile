@@ -6,7 +6,7 @@ LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
-UBOOT_VER=2019.07
+UBOOT_VER=2020.04
 ARMORYCTL_VER=1.0
 APT_GPG_KEY=CEADE0CF01939B21
 
@@ -145,9 +145,7 @@ u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 	elif test "${V}" = "mark-two"; then \
 		cd u-boot-${UBOOT_VER} && \
 		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		wget ${USBARMORY_REPO}/software/u-boot/0001-Drop-linker-generated-array-creation-when-CONFIG_CMD.patch && \
 		patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		patch -p1 < 0001-Drop-linker-generated-array-creation-when-CONFIG_CMD.patch && \
 		make usbarmory-mark-two_defconfig; \
 		if test "${BOOT}" = "eMMC"; then \
 			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' .config; \
