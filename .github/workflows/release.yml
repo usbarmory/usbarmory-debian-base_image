@@ -6,16 +6,8 @@
 
 name: Release
 on:
-#  release:
-#    types: [unpublished]
-  workflow_dispatch:
-    inputs:
-      name:
-        description: 'Person to greet'
-        required: true
-      home:
-        description: 'location'
-        required: false
+  release:
+    types: [published]
 
 jobs:
 
@@ -55,7 +47,7 @@ jobs:
     - uses: eduncan911/release-asset-action@1.0.0
       with:
         pattern: "release/*"
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.TOKEN_FOR_RELEASES }}
 
   mark-two:
     runs-on: ubuntu-18.04
@@ -93,4 +85,4 @@ jobs:
     - uses: eduncan911/release-asset-action@1.0.0
       with:
         pattern: "release/*"
-        github-token: ${{ secrets.GITHUB_TOKEN_FOR_RELEASES }}
+        github-token: ${{ secrets.TOKEN_FOR_RELEASES }}
