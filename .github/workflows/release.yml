@@ -1,0 +1,88 @@
+# This workflow will build everything, package, compress, sign, hash,
+# and then upload all assets to the release.
+#
+# It is triggered when you create a release.
+#
+
+name: Release
+on:
+  release:
+    types: [unpublished]
+
+jobs:
+
+  mark-one:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [imx53]
+        boot: [uSD]
+        device: [mark-one]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
+          gnupg make parted qemu-user-static wget xz-utils zip debootstrap \
+          sudo dirmngr bison flex libssl-dev kmod
+
+    - name: Import Signing Keys
+      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
+        wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
+
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} release
+  
+    - name: Organize Release files to Upload
+      run: |
+        rm *.raw
+        mkdir -p release/
+        mv usbarmory* release/
+        ls -la release/
+
+    - uses: eduncan911/release-asset-action@1.0.0
+      with:
+        pattern: "release/*"
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  mark-two:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [imx6ulz]
+        boot: [uSD, eMMC]
+        device: [mark-two]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
+          gnupg make parted qemu-user-static wget xz-utils zip debootstrap \
+          sudo dirmngr bison flex libssl-dev kmod
+
+    - name: Import Signing Keys
+      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
+        wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
+
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} release
+
+    - name: Organize Release files to Upload
+      run: |
+        rm *.raw
+        mkdir -p release/
+        mv usbarmory* release/
+        ls -la release/
+
+    - uses: eduncan911/release-asset-action@1.0.0
+      with:
+        pattern: "release/*"
+        github-token: ${{ secrets.GITHUB_TOKEN_FOR_RELEASES }}
