@@ -6,8 +6,16 @@
 
 name: Release
 on:
-  release:
-    types: [unpublished]
+#  release:
+#    types: [unpublished]
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        required: true
+      home:
+        description: 'location'
+        required: false
 
 jobs:
 
