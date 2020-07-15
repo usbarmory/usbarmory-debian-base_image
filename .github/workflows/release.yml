@@ -82,7 +82,7 @@ jobs:
         mv usbarmory* release/
         ls -la release/
 
-    - uses: eduncan911/release-asset-action@1.0.0
+    - uses: f-secure-foundry/release-asset-action@1.0.0
       with:
         pattern: "release/*"
         github-token: ${{ secrets.TOKEN_FOR_RELEASES }}
