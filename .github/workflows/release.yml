@@ -20,7 +20,7 @@ jobs:
         boot: [uSD]
         device: [mark-one]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
 
     - name: Prerequisites
       run: |
@@ -44,7 +44,7 @@ jobs:
         mv usbarmory* release/
         ls -la release/
 
-    - uses: eduncan911/release-asset-action@1.0.0
+    - uses: f-secure-foundry/release-asset-action@1.0.0
       with:
         pattern: "release/*"
         github-token: ${{ secrets.TOKEN_FOR_RELEASES }}

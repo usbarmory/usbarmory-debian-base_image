@@ -47,7 +47,7 @@ jobs:
         boot: [uSD]
         device: [mark-one]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
 
     - name: Prerequisites
       run: |
@@ -73,7 +73,7 @@ jobs:
         boot: [uSD, eMMC]
         device: [mark-two]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
 
     - name: Prerequisites
       run: |
