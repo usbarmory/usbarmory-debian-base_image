@@ -36,6 +36,11 @@ docker build --rm -t armory ./
 docker run -it --privileged -v $(pwd):/opt/armory --name armory armory
 ```
 
+On Mac OS X the build needs to be done in a case-sensitive filesystem. Such
+filesystem can be created with `Disk Utility` by selecting `File > New Image >
+Blank Image`, choosing `Size: 5GB` and `Format: APFS (Case-sensitive)`. Double
+click on the created dmg file to mount it.
+
 ## Building
 
 Launch the following command to download and build the image:
