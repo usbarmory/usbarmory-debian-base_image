@@ -124,7 +124,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 	@if [ ! -d "linux-${LINUX_VER}" ]; then \
 		unxz --keep linux-${LINUX_VER}.tar.xz; \
 		gpg --verify linux-${LINUX_VER}.tar.sign; \
-		tar xf linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
+		tar xfm linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
 	fi
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
@@ -139,7 +139,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 
 u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
-	tar xf u-boot-${UBOOT_VER}.tar.bz2
+	tar xfm u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
 	@if test "${V}" = "mark-one"; then \
 		cd u-boot-${UBOOT_VER} && make usbarmory_config; \
