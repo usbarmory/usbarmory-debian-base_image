@@ -20,7 +20,7 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E
 
 Import the U-Boot signing GPG key:
 ```
-gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 147C39FF9634B72C
 ```
 
 The `loop` Linux kernel module must be enabled/loaded, also mind that the
