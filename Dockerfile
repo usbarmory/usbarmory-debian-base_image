@@ -14,7 +14,8 @@ RUN tar -C /usr/local -xzf $GOLANG_TARBALL
 RUN rm $GOLANG_TARBALL
 ENV PATH "$PATH:/usr/local/go/bin"
 
+# import U-Boot signing keys
 RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E \
-    && gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
+    && gpg --keyserver hkp://keys.gnupg.net --recv-keys 147C39FF9634B72C
 
 WORKDIR /opt/armory
