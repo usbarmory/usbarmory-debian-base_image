@@ -7,9 +7,10 @@ RUN apt-get install -y \
     debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio
 
 # install golang
-ARG GOLANG_TARBALL=go1.13.6.linux-amd64.tar.gz
-RUN wget https://dl.google.com/go/$GOLANG_TARBALL
-RUN echo a1bc06deb070155c4f67c579f896a45eeda5a8fa54f35ba233304074c4abbbbd $GOLANG_TARBALL | sha256sum -c
+ARG GOLANG_VERSION="1.15.3"
+ARG GOLANG_TARBALL=go${GOLANG_VERSION}.linux-amd64.tar.gz
+RUN wget https://storage.googleapis.com/golang/$GOLANG_TARBALL --progress=dot:giga
+RUN echo 010a88df924a81ec21b293b5da8f9b11c176d27c0ee3962dc1738d2352d3c02d $GOLANG_TARBALL | sha256sum -c
 RUN tar -C /usr/local -xzf $GOLANG_TARBALL
 RUN rm $GOLANG_TARBALL
 ENV PATH "$PATH:/usr/local/go/bin"
