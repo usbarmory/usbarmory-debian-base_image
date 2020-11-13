@@ -6,6 +6,12 @@ RUN apt-get install -y \
     git gnupg make parted qemu-user-static wget xz-utils zip \
     debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio
 
+# import U-Boot signing keys
+RUN gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys 38DBBDC86092693E && \
+    gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys 147C39FF9634B72C && \
+# import golang signing keys
+    gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys 'EB4C 1BFD 4F04 2F6D DDCC EC91 7721 F63B D38B 4796'
+
 # install golang
 ARG GOLANG_VERSION="1.15.3"
 ARG GOLANG_TARBALL=go${GOLANG_VERSION}.linux-amd64.tar.gz
@@ -15,8 +21,5 @@ RUN tar -C /usr/local -xzf $GOLANG_TARBALL
 RUN rm $GOLANG_TARBALL
 ENV PATH "$PATH:/usr/local/go/bin"
 
-# import U-Boot signing keys
-RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E \
-    && gpg --keyserver hkp://keys.gnupg.net --recv-keys 147C39FF9634B72C
 
 WORKDIR /opt/armory
