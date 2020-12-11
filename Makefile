@@ -1,13 +1,13 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=5.4.72
+LINUX_VER=5.4.82
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2020.10
-ARMORYCTL_VER=1.0
+ARMORYCTL_VER=1.1
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
