@@ -31,9 +31,7 @@ jobs:
           sudo dirmngr bison flex libssl-dev kmod
 
     - name: Import Signing Keys
-      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://keys.inversepath.com/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
+      run: gpg --receive-keys 38DBBDC86092693E 147C39FF9634B72C
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} release
   
@@ -69,9 +67,7 @@ jobs:
           sudo dirmngr bison flex libssl-dev kmod
 
     - name: Import Signing Keys
-      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://keys.inversepath.com/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
+      run: gpg --receive-keys 38DBBDC86092693E 147C39FF9634B72C
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} release
 
