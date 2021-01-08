@@ -13,10 +13,10 @@ RUN gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys 38DBBDC
     gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys 7721F63BD38B4796
 
 # install golang
-ENV GOLANG_VERSION="1.15.3"
+ENV GOLANG_VERSION="1.15.6"
 RUN wget -O go.tgz https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz --progress=dot:giga
 RUN wget -O go.tgz.asc https://storage.googleapis.com/golang/go${GOLANG_VERSION}.linux-amd64.tar.gz.asc --progress=dot:giga
-RUN echo "010a88df924a81ec21b293b5da8f9b11c176d27c0ee3962dc1738d2352d3c02d *go.tgz" | sha256sum --strict --check -
+RUN echo "3918e6cc85e7eaaa6f859f1bdbaac772e7a825b0eb423c63d3ae68b21f84b844 *go.tgz" | sha256sum --strict --check -
 RUN gpg --batch --verify go.tgz.asc go.tgz
 RUN tar -C /usr/local -xzf go.tgz && rm go.tgz
 
