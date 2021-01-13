@@ -62,7 +62,7 @@ jobs:
         wget https://f-secure-foundry.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget https://f-secure-foundry.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
   mark-two:
     runs-on: ubuntu-18.04
@@ -88,4 +88,4 @@ jobs:
         wget https://f-secure-foundry.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget https://f-secure-foundry.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
