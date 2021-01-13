@@ -96,6 +96,7 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo rm rootfs/etc/ssh/ssh_host_*
 	sudo cp linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb rootfs/tmp/
 	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+	sudo chroot rootfs /usr/bin/dpkg -i /tmp/linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 	sudo rm rootfs/tmp/linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 	@if test "${V}" = "mark-two"; then \
 		sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/; \
@@ -249,6 +250,23 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
+linux-headers-deb:
+	mkdir -p linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}${LOCALVERSION}/build}
+	cd linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION} ; ln -sf build source
+	cat control_template_linux-headers | \
+		sed -e 's/XXXX/${LINUX_VER_MAJOR}/'          | \
+		sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' | \
+		sed -e 's/ZZZZ/linux-image-${LINUX_VER_MAJOR}-usbarmory (=${LINUX_VER}${LOCALVERSION})/' | \
+		sed -e 's/USB armory/USB armory ${V}/' \
+		> linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control
+	@if test "${V}" = "mark-two"; then \
+		sed -i -e 's/${LINUX_VER_MAJOR}-usbarmory/${LINUX_VER_MAJOR}-usbarmory-mark-two/' \
+		linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control; \
+	fi
+	cd linux-${LINUX_VER} && make INSTALL_HDR_PATH=../linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/build ARCH=arm headers_install
+	chmod 755 linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
+	fakeroot dpkg-deb -b linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+
 armoryctl-deb: check_version armoryctl
 	mkdir -p armoryctl_${ARMORYCTL_VER}_armhf/{DEBIAN,sbin}
 	cat control_template_armoryctl | \
@@ -274,15 +292,16 @@ release: check_version all compress
 	sha256sum usbarmory-${IMG_VERSION}.raw.xz > usbarmory-${IMG_VERSION}.raw.xz.sha256
 
 ifeq ($(V),mark-two)
-all: check_version armoryctl-deb linux-deb debian u-boot finalize
+all: check_version armoryctl-deb linux-deb linux-headers-deb debian u-boot finalize
 else
-all: check_version linux-deb debian u-boot finalize
+all: check_version linux-deb linux-headers-deb debian u-boot finalize
 endif
 
 clean: check_version
 	-rm -fr linux-${LINUX_VER}*
 	-rm -fr u-boot-${UBOOT_VER}*
 	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
+	-rm -fr linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
 	-rm -fr armoryctl*
 	-rm -fr mxc-scc2-master* mxs-dcp-master* caam-keyblob-master*
 	-rm -f usbarmory-${V}-${BOOT_PARSED}-debian_buster-base_image-*.raw

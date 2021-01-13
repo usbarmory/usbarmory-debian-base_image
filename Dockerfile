@@ -3,7 +3,7 @@ FROM debian:10
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf \
-    git gnupg make parted qemu-user-static wget xz-utils zip \
+    git gnupg make parted rsync qemu-user-static wget xz-utils zip \
     debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio
 
 # import U-Boot signing keys
