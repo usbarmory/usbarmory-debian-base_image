@@ -222,7 +222,12 @@ extra-dtb: check_version linux-${LINUX_VER}/arch/arm/boot/zImage
 
 KERNEL_DEPS := check_version
 KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/zImage
-KERNEL_DEPS += extra-dtb mxc-scc2 mxs-dcp caam-keyblob
+ifeq ($(V),mark-one)
+KERNEL_DEPS += extra-dtb mxc-scc2
+endif
+ifeq ($(V),mark-two)
+KERNEL_DEPS += mxs-dcp caam-keyblob
+endif
 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(KERNEL_DEPS)
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
 	cat control_template_linux | \
