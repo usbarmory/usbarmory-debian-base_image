@@ -33,7 +33,7 @@ give privileges for handling loop devices, example:
 
 ```
 docker build --rm -t armory ./
-docker run -it --privileged -v $(pwd):/opt/armory --name armory armory
+docker run --rm -it --privileged -v $(pwd):/opt/armory --name armory armory
 ```
 
 On Mac OS X the build needs to be done in a case-sensitive filesystem. Such
