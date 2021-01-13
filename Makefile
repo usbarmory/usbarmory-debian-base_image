@@ -18,7 +18,7 @@ CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
 IMG_VERSION=${V}-${BOOT_PARSED}-debian_buster-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell /sbin/losetup -f)
 
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := release
 
 V ?= mark-two
 BOOT ?= uSD
@@ -47,12 +47,39 @@ check_version:
 	fi
 	@echo "target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT}"
 
-usbarmory-${IMG_VERSION}.raw:
+#### u-boot ####
+
+u-boot-${UBOOT_VER}.tar.bz2:
+	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
+	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
+
+u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
+	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
+	tar xfm u-boot-${UBOOT_VER}.tar.bz2
+	cd u-boot-${UBOOT_VER} && make distclean
+	@if test "${V}" = "mark-one"; then \
+		cd u-boot-${UBOOT_VER} && make usbarmory_config; \
+	elif test "${V}" = "mark-two"; then \
+		cd u-boot-${UBOOT_VER} && \
+		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+		patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+		make usbarmory-mark-two_defconfig; \
+		if test "${BOOT}" = "eMMC"; then \
+			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' .config; \
+			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' .config; \
+		fi \
+	fi
+	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
+
+#### debian ####
+
+DEBIAN_DEPS := check_version
+DEBIAN_DEPS += linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+DEBIAN_DEPS += linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	truncate -s 3500MiB usbarmory-${IMG_VERSION}.raw
 	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mklabel msdos
 	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mkpart primary ext4 5M 100%
-
-debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo /sbin/losetup $(LOSETUP_DEV) usbarmory-${IMG_VERSION}.raw -o 5242880 --sizelimit 3500MiB
 	sudo /sbin/mkfs.ext4 -F $(LOSETUP_DEV)
 	sudo /sbin/losetup -d $(LOSETUP_DEV)
@@ -114,13 +141,21 @@ debian: check_version usbarmory-${IMG_VERSION}.raw
 	sudo rm rootfs/usr/bin/qemu-arm-static
 	sudo umount rootfs
 
+#### debian-xz ####
+
+usbarmory-${IMG_VERSION}.raw.xz: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.bin
+	@if test "${V}" = "mark-one"; then \
+		sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
+	elif test "${V}" = "mark-two"; then \
+		sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
+	fi
+	xz -k usbarmory-${IMG_VERSION}.raw
+
+#### linux ####
+
 linux-${LINUX_VER}.tar.xz:
 	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
 	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
-
-u-boot-${UBOOT_VER}.tar.bz2:
-	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
-	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
 
 linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 	@if [ ! -d "linux-${LINUX_VER}" ]; then \
@@ -128,7 +163,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		gpg --verify linux-${LINUX_VER}.tar.sign; \
 		tar xfm linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
 	fi
-	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
+	#wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
 	fi
@@ -139,82 +174,56 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
 		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
 
-u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
-	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
-	tar xfm u-boot-${UBOOT_VER}.tar.bz2
-	cd u-boot-${UBOOT_VER} && make distclean
-	@if test "${V}" = "mark-one"; then \
-		cd u-boot-${UBOOT_VER} && make usbarmory_config; \
-	elif test "${V}" = "mark-two"; then \
-		cd u-boot-${UBOOT_VER} && \
-		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		make usbarmory-mark-two_defconfig; \
-		if test "${BOOT}" = "eMMC"; then \
-			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' .config; \
-			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' .config; \
-		fi \
-	fi
-	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
+#### mxc-scc2 ####
 
-mxc-scc2-master.zip: check_version
-	@if test "${IMX}" = "imx53"; then \
-		wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip && \
-		unzip -o mxc-scc2-master; \
-	fi
+mxc-scc2-master.zip:
+	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
 
-mxs-dcp-master.zip: check_version
-	@if test "${IMX}" = "imx6ulz"; then \
-		wget ${MXS_DCP_REPO}/archive/master.zip -O mxs-dcp-master.zip && \
-		unzip -o mxs-dcp-master; \
-	fi
+mxc-scc2-master: mxc-scc2-master.zip
+	unzip -o mxc-scc2-master.zip
 
-caam-keyblob-master.zip: check_version
-	@if test "${IMX}" = "imx6ul"; then \
-		wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip && \
-		unzip -o caam-keyblob-master; \
-	fi
+mxc-scc2-master/mxc-scc2.ko: mxc-scc2-master linux-${LINUX_VER}/arch/arm/boot/zImage
+	cd mxc-scc2-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
-armoryctl-${ARMORYCTL_VER}.zip: check_version
-	@if test "${V}" = "mark-two"; then \
-		wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O armoryctl-v${ARMORYCTL_VER}.zip && \
-		unzip -o armoryctl-v${ARMORYCTL_VER}.zip; \
-	fi
+#### mxs-dcp ####
 
-linux: linux-${LINUX_VER}/arch/arm/boot/zImage
+mxs-dcp-master.zip:
+	wget ${MXS_DCP_REPO}/archive/master.zip -O mxs-dcp-master.zip
 
-mxc-scc2: mxc-scc2-master.zip linux
-	@if test "${IMX}" = "imx53"; then \
-		cd mxc-scc2-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
-	fi
+mxs-dcp-master: mxs-dcp-master.zip
+	unzip -o mxs-dcp-master.zip
 
-mxs-dcp: mxs-dcp-master.zip linux
-	@if test "${IMX}" = "imx6ulz"; then \
-		cd mxs-dcp-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
-	fi
+mxs-dcp-master/mxs-dcp.ko: mxs-dcp-master linux-${LINUX_VER}/arch/arm/boot/zImage
+	cd mxs-dcp-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
-caam-keyblob: caam-keyblob-master.zip linux
-	@if test "${IMX}" = "imx6ul"; then \
-		cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all; \
-	fi
+#### caam-keyblob ####
 
-armoryctl: armoryctl-${ARMORYCTL_VER}.zip
-	@if test "${V}" = "mark-two"; then \
-		cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm make; \
-	fi
+caam-keyblob-master.zip:
+	wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip
 
-extra-dtb: check_version linux
-	@if test "${V}" = "mark-one"; then \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config; \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-host.dts; \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-gpio.dts; \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-spi.dts; \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-i2c.dts; \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-scc2.dts; \
-		cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} ${IMX}-usbarmory-host.dtb ${IMX}-usbarmory-gpio.dtb ${IMX}-usbarmory-spi.dtb ${IMX}-usbarmory-i2c.dtb ${IMX}-usbarmory-scc2.dtb; \
-	fi
+caam-keyblob-master: caam-keyblob-master.zip
+	unzip -o caam-keyblob-master.zip
 
-linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
+caam-keyblob-master/caam-keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch/arm/boot/zImage
+	cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+
+#### dtb ####
+
+extra-dtb: check_version linux-${LINUX_VER}/arch/arm/boot/zImage
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-i2c.dts
+	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-scc2.dts
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} imx53-usbarmory-host.dtb imx53-usbarmory-gpio.dtb imx53-usbarmory-spi.dtb imx53-usbarmory-i2c.dtb imx53-usbarmory-scc2.dtb
+
+#### linux-image-deb ####
+
+KERNEL_DEPS := check_version
+KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/zImage
+KERNEL_DEPS += extra-dtb mxc-scc2 mxs-dcp caam-keyblob
+linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(KERNEL_DEPS)
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
 	cat control_template_linux | \
 		sed -e 's/XXXX/${LINUX_VER_MAJOR}/'          | \
@@ -251,7 +260,11 @@ linux-deb: check_version linux extra-dtb mxc-scc2 mxs-dcp caam-keyblob
 	chmod 755 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
-linux-headers-deb:
+#### linux-headers-deb ####
+
+HEADER_DEPS := check_version
+HEADER_DEPS += linux-${LINUX_VER}/arch/arm/boot/zImage
+linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(HEADER_DEPS)
 	mkdir -p linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}${LOCALVERSION}/build}
 	cd linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION} ; ln -sf build source
 	cat control_template_linux-headers | \
@@ -268,7 +281,20 @@ linux-headers-deb:
 	chmod 755 linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
-armoryctl-deb: check_version armoryctl
+#### armoryctl ####
+
+armoryctl-${ARMORYCTL_VER}.zip:
+	wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O armoryctl-v${ARMORYCTL_VER}.zip
+
+armoryctl-${ARMORYCTL_VER}: armoryctl-${ARMORYCTL_VER}.zip
+	unzip -o armoryctl-v${ARMORYCTL_VER}.zip
+
+armoryctl-${ARMORYCTL_VER}/armoryctl: armoryctl-${ARMORYCTL_VER}
+	cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm make
+
+#### armoryctl-deb ####
+
+armoryctl_${ARMORYCTL_VER}_armhf.deb: armoryctl-${ARMORYCTL_VER}/armoryctl
 	mkdir -p armoryctl_${ARMORYCTL_VER}_armhf/{DEBIAN,sbin}
 	cat control_template_armoryctl | \
 		sed -e 's/YYYY/${ARMORYCTL_VER}/' \
@@ -277,34 +303,29 @@ armoryctl-deb: check_version armoryctl
 	chmod 755 armoryctl_${ARMORYCTL_VER}_armhf/DEBIAN
 	fakeroot dpkg-deb -b armoryctl_${ARMORYCTL_VER}_armhf armoryctl_${ARMORYCTL_VER}_armhf.deb
 
+#### targets ####
+
+.PHONY: u-boot debian debian-xz linux linux-image-deb linux-headers-deb
+.PHONY: mxs-dcp mxc-scc2 caam-keyblob armoryctl armoryctl-deb
+
 u-boot: u-boot-${UBOOT_VER}/u-boot.bin
+debian: usbarmory-${IMG_VERSION}.raw
+debian-xz: usbarmory-${IMG_VERSION}.raw.xz
+linux: linux-${LINUX_VER}/arch/arm/boot/zImage
+linux-image-deb: linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+linux-headers-deb: linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+mxs-dcp: mxs-dcp-master/mxs-dcp.ko
+mxc-scc2: mxc-scc2-master/mxc-scc2.ko
+caam-keyblob: caam-keyblob-master/caam-keyblob.ko
+armoryctl: armoryctl-${ARMORYCTL_VER}/armoryctl
+armoryctl-deb: armoryctl_${ARMORYCTL_VER}_armhf.deb
 
-finalize: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.bin
-	@if test "${V}" = "mark-one"; then \
-		sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
-	elif test "${V}" = "mark-two"; then \
-		sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
-	fi
-
-compress:
-	xz -k usbarmory-${IMG_VERSION}.raw
-
-release: check_version all compress
+release: check_version usbarmory-${IMG_VERSION}.raw.xz
 	sha256sum usbarmory-${IMG_VERSION}.raw.xz > usbarmory-${IMG_VERSION}.raw.xz.sha256
 
-ifeq ($(V),mark-two)
-all: check_version armoryctl-deb linux-deb linux-headers-deb debian u-boot finalize
-else
-all: check_version linux-deb linux-headers-deb debian u-boot finalize
-endif
-
-clean: check_version
-	-rm -fr linux-${LINUX_VER}*
-	-rm -fr u-boot-${UBOOT_VER}*
-	-rm -fr linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
-	-rm -fr linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf*
-	-rm -fr armoryctl*
+clean:
+	-rm -fr armoryctl* linux-* linux-image-* linux-headers-* u-boot-*
 	-rm -fr mxc-scc2-master* mxs-dcp-master* caam-keyblob-master*
-	-rm -f usbarmory-${V}-${BOOT_PARSED}-debian_buster-base_image-*.raw
+	-rm -f usbarmory-*.raw
 	-sudo umount -f rootfs
 	-rmdir rootfs
