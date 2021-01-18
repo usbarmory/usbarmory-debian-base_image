@@ -47,13 +47,13 @@ Launch the following command to download and build the image:
 
 ```
 # For the USB armory Mk II (external microSD)
-make all V=mark-two IMX=imx6ulz BOOT=uSD
+make V=mark-two IMX=imx6ulz BOOT=uSD
 
 # For the USB armory Mk II (internal eMMC)
-make all V=mark-two IMX=imx6ulz BOOT=eMMC
+make V=mark-two IMX=imx6ulz BOOT=eMMC
 
 # For the USB armory Mk I
-make all V=mark-one IMX=imx53
+make V=mark-one IMX=imx53
 ```
 
 The following output files are produced:
