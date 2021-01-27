@@ -10,7 +10,7 @@ Pre-compiled releases are [available](https://github.com/f-secure-foundry/usbarm
 A Debian 9 installation with the following packages:
 
 ```
-bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git gnupg make parted qemu-user-static wget xz-utils zip debootstrap sudo dirmngr bison flex libssl-dev kmod
+bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap sudo dirmngr bison flex libssl-dev kmod
 ```
 
 Import the Linux signing GPG key:
@@ -20,7 +20,7 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E
 
 Import the U-Boot signing GPG key:
 ```
-gpg --keyserver hkp://keys.gnupg.net --recv-keys 87F9F635D31D7652
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 147C39FF9634B72C
 ```
 
 The `loop` Linux kernel module must be enabled/loaded, also mind that the
@@ -33,8 +33,13 @@ give privileges for handling loop devices, example:
 
 ```
 docker build --rm -t armory ./
-docker run -it --privileged -v $(pwd):/opt/armory --name armory armory
+docker run --rm -it --privileged -v $(pwd):/opt/armory --name armory armory
 ```
+
+On Mac OS X the build needs to be done in a case-sensitive filesystem. Such
+filesystem can be created with `Disk Utility` by selecting `File > New Image >
+Blank Image`, choosing `Size: 5GB` and `Format: APFS (Case-sensitive)`. Double
+click on the created dmg file to mount it.
 
 ## Building
 
@@ -42,13 +47,13 @@ Launch the following command to download and build the image:
 
 ```
 # For the USB armory Mk II (external microSD)
-make all V=mark-two IMX=imx6ulz BOOT=uSD
+make V=mark-two IMX=imx6ulz BOOT=uSD
 
 # For the USB armory Mk II (internal eMMC)
-make all V=mark-two IMX=imx6ulz BOOT=eMMC
+make V=mark-two IMX=imx6ulz BOOT=eMMC
 
 # For the USB armory Mk I
-make all V=mark-one IMX=imx53
+make V=mark-one IMX=imx53
 ```
 
 The following output files are produced:

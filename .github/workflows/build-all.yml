@@ -54,15 +54,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
-          gnupg make parted qemu-user-static wget xz-utils zip debootstrap \
+          gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
           sudo dirmngr bison flex libssl-dev kmod
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
+        wget https://f-secure-foundry.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget https://f-secure-foundry.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
   mark-two:
     runs-on: ubuntu-18.04
@@ -80,12 +80,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
-          gnupg make parted qemu-user-static wget xz-utils zip debootstrap \
+          gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
           sudo dirmngr bison flex libssl-dev kmod
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget http://keys.inversepath.com/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget http://keys.inversepath.com/87F9F635D31D7652.asc && gpg --import 87F9F635D31D7652.asc
+        wget https://f-secure-foundry.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget https://f-secure-foundry.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }} all
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
