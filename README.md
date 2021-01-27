@@ -100,10 +100,10 @@ hid-generic 0003:15A2:0080.0003: hiddev96,hidraw1: USB HID v1.10 Device [Freesca
 ```
 
 Load the [armory-ums](https://github.com/f-secure-foundry/armory-ums/releases)
-firmware using the [imx_loader](https://github.com/boundarydevices/imx_usb_loader) utility:
+firmware using the [armory-boot-usb](https://github.com/f-secure-foundry/armory-boot/tree/master/cmd/armory-boot-usb) utility:
 
 ```
-imx_usb armory-ums.imx
+sydo armory-boot-usb -i armory-ums.imx
 ```
 
 Once loaded, the host kernel should detect a USB storage device, corresponding
