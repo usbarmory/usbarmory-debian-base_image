@@ -12,7 +12,7 @@ on:
 jobs:
 
   mark-one:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -50,7 +50,7 @@ jobs:
         github-token: ${{ secrets.TOKEN_FOR_RELEASES }}
 
   mark-two:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
