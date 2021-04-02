@@ -108,7 +108,7 @@ Load the [armory-ums](https://github.com/f-secure-foundry/armory-ums/releases)
 firmware using the [armory-boot-usb](https://github.com/f-secure-foundry/armory-boot/tree/master/cmd/armory-boot-usb) utility:
 
 ```
-sydo armory-boot-usb -i armory-ums.imx
+sudo armory-boot-usb -i armory-ums.imx
 ```
 
 Once loaded, the host kernel should detect a USB storage device, corresponding
