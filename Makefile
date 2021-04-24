@@ -16,7 +16,7 @@ MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
 MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
 IMG_VERSION=${V}-${BOOT_PARSED}-debian_buster-base_image-$(shell /bin/date -u "+%Y%m%d")
-LOSETUP_DEV=$(shell /sbin/losetup -f)
+LOSETUP_DEV=$(shell sudo /sbin/losetup -f)
 
 .DEFAULT_GOAL := release
 
