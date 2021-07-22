@@ -7,7 +7,7 @@ KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2021.07
-ARMORYCTL_VER=1.1
+ARMORYCTL_VER=1.2
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
