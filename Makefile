@@ -144,11 +144,7 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 #### debian-xz ####
 
 usbarmory-${IMG_VERSION}.raw.xz: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER}/u-boot.bin
-	@if test "${V}" = "mark-one"; then \
-		sudo dd if=u-boot-${UBOOT_VER}/u-boot.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
-	elif test "${V}" = "mark-two"; then \
-		sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc; \
-	fi
+	sudo dd if=u-boot-${UBOOT_VER}/u-boot-dtb.imx of=usbarmory-${IMG_VERSION}.raw bs=512 seek=2 conv=fsync conv=notrunc
 	xz -k usbarmory-${IMG_VERSION}.raw
 
 #### linux ####
