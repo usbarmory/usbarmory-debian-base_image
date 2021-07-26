@@ -8,10 +8,12 @@ KBUILD_BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2021.07
 ARMORYCTL_VER=1.2
+CRUCIBLE_VER=2021.05.03
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
 ARMORYCTL_REPO=https://github.com/f-secure-foundry/armoryctl
+CRUCIBLE_REPO=https://github.com/f-secure-foundry/crucible
 MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
 MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
@@ -130,6 +132,9 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 		sudo cp armoryctl_${ARMORYCTL_VER}_armhf.deb rootfs/tmp/; \
 		sudo chroot rootfs /usr/bin/dpkg -i /tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
 		sudo rm rootfs/tmp/armoryctl_${ARMORYCTL_VER}_armhf.deb; \
+		sudo cp crucible_${CRUCIBLE_VER}_armhf.deb rootfs/tmp/; \
+		sudo chroot rootfs /usr/bin/dpkg -i /tmp/crucible_${CRUCIBLE_VER}_armhf.deb; \
+		sudo rm rootfs/tmp/crucible_${CRUCIBLE_VER}_armhf.deb; \
 		if test "${BOOT}" = "uSD"; then \
 			echo "/dev/mmcblk0 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
 		else \
@@ -304,10 +309,32 @@ armoryctl_${ARMORYCTL_VER}_armhf.deb: armoryctl-${ARMORYCTL_VER}/armoryctl
 	chmod 755 armoryctl_${ARMORYCTL_VER}_armhf/DEBIAN
 	fakeroot dpkg-deb -b armoryctl_${ARMORYCTL_VER}_armhf armoryctl_${ARMORYCTL_VER}_armhf.deb
 
+#### crucible ####
+
+crucible-${CRUCIBLE_VER}.zip:
+	wget ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O crucible-v${CRUCIBLE_VER}.zip
+
+crucible-${CRUCIBLE_VER}: crucible-${CRUCIBLE_VER}.zip
+	unzip -o crucible-v${CRUCIBLE_VER}.zip
+
+crucible-${CRUCIBLE_VER}/crucible: crucible-${CRUCIBLE_VER}
+	cd crucible-${CRUCIBLE_VER} && GOPATH=/tmp/go GOARCH=arm make crucible
+
+#### crucible-deb ####
+
+crucible_${CRUCIBLE_VER}_armhf.deb: crucible-${CRUCIBLE_VER}/crucible
+	mkdir -p crucible_${CRUCIBLE_VER}_armhf/{DEBIAN,sbin}
+	cat control_template_crucible | \
+		sed -e 's/YYYY/${CRUCIBLE_VER}/' \
+		> crucible_${CRUCIBLE_VER}_armhf/DEBIAN/control
+	cp -r crucible-${CRUCIBLE_VER}/crucible crucible_${CRUCIBLE_VER}_armhf/sbin
+	chmod 755 crucible_${CRUCIBLE_VER}_armhf/DEBIAN
+	fakeroot dpkg-deb -b crucible_${CRUCIBLE_VER}_armhf crucible_${CRUCIBLE_VER}_armhf.deb
+
 #### targets ####
 
 .PHONY: u-boot debian debian-xz linux linux-image-deb linux-headers-deb
-.PHONY: mxs-dcp mxc-scc2 caam-keyblob armoryctl armoryctl-deb
+.PHONY: mxs-dcp mxc-scc2 caam-keyblob armoryctl armoryctl-deb crucible crucible-deb
 
 u-boot: u-boot-${UBOOT_VER}/u-boot.bin
 debian: usbarmory-${IMG_VERSION}.raw
@@ -320,12 +347,14 @@ mxc-scc2: mxc-scc2-master/mxc-scc2.ko
 caam-keyblob: caam-keyblob-master/caam-keyblob.ko
 armoryctl: armoryctl-${ARMORYCTL_VER}/armoryctl
 armoryctl-deb: armoryctl_${ARMORYCTL_VER}_armhf.deb
+crucible: crucible-${CRUCIBLE_VER}/crucible
+crucible-deb: crucible_${CRUCIBLE_VER}_armhf.deb
 
 release: check_version usbarmory-${IMG_VERSION}.raw.xz
 	sha256sum usbarmory-${IMG_VERSION}.raw.xz > usbarmory-${IMG_VERSION}.raw.xz.sha256
 
 clean:
-	-rm -fr armoryctl* linux-* linux-image-* linux-headers-* u-boot-*
+	-rm -fr armoryctl* crucible* linux-* linux-image-* linux-headers-* u-boot-*
 	-rm -fr mxc-scc2-master* mxs-dcp-master* caam-keyblob-master*
 	-rm -f usbarmory-*.raw
 	-sudo umount -f rootfs
