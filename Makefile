@@ -5,6 +5,8 @@ LINUX_VER=5.10.54
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
+BUILD_USER=usbarmory
+BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2021.07
 ARMORYCTL_VER=1.2
@@ -78,6 +80,7 @@ u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 DEBIAN_DEPS := check_version
 DEBIAN_DEPS += linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 DEBIAN_DEPS += linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+DEBIAN_DEPS += armoryctl_${ARMORYCTL_VER}_armhf.deb crucible_${CRUCIBLE_VER}_armhf.deb
 usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	truncate -s 3500MiB usbarmory-${IMG_VERSION}.raw
 	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mklabel msdos
@@ -296,7 +299,7 @@ armoryctl-${ARMORYCTL_VER}: armoryctl-${ARMORYCTL_VER}.zip
 	unzip -o armoryctl-v${ARMORYCTL_VER}.zip
 
 armoryctl-${ARMORYCTL_VER}/armoryctl: armoryctl-${ARMORYCTL_VER}
-	cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm make
+	cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make
 
 #### armoryctl-deb ####
 
@@ -318,7 +321,7 @@ crucible-${CRUCIBLE_VER}: crucible-${CRUCIBLE_VER}.zip
 	unzip -o crucible-v${CRUCIBLE_VER}.zip
 
 crucible-${CRUCIBLE_VER}/crucible: crucible-${CRUCIBLE_VER}
-	cd crucible-${CRUCIBLE_VER} && GOPATH=/tmp/go GOARCH=arm make crucible
+	cd crucible-${CRUCIBLE_VER} && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make crucible
 
 #### crucible-deb ####
 
