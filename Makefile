@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=5.10.54
+LINUX_VER=5.10.62
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=f-secure-foundry
@@ -62,7 +62,10 @@ u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 	tar xfm u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
 	@if test "${V}" = "mark-one"; then \
-		cd u-boot-${UBOOT_VER} && make usbarmory_config; \
+		cd u-boot-${UBOOT_VER} && \
+		wget ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
+		patch -p1 < 0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
+		make usbarmory_config; \
 	elif test "${V}" = "mark-two"; then \
 		cd u-boot-${UBOOT_VER} && \
 		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
