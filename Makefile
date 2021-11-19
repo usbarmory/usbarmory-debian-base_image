@@ -87,12 +87,12 @@ DEBIAN_DEPS += armoryctl_${ARMORYCTL_VER}_armhf.deb crucible_${CRUCIBLE_VER}_arm
 usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	truncate -s 3500MiB usbarmory-${IMG_VERSION}.raw
 	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mklabel msdos
-	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mkpart primary ext4 64M 100%
-	sudo /sbin/losetup $(LOSETUP_DEV) usbarmory-${IMG_VERSION}.raw -o 63963136 --sizelimit 3500MiB
+	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mkpart primary ext4 5M 100%
+	sudo /sbin/losetup $(LOSETUP_DEV) usbarmory-${IMG_VERSION}.raw -o 5242880 --sizelimit 3500MiB
 	sudo /sbin/mkfs.ext4 -F $(LOSETUP_DEV)
 	sudo /sbin/losetup -d $(LOSETUP_DEV)
 	mkdir -p rootfs
-	sudo mount -o loop,offset=63963136 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
+	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
 	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
 		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd \
