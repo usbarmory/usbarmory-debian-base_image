@@ -173,6 +173,8 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
+	fi
+	if test "${IMX}" = "imx6ulz"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-tzns.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dts; \
 	fi
 	cd linux-${LINUX_VER} && \
@@ -180,7 +182,15 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
 		LOCALVERSION=${LOCALVERSION} \
 		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
-		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb ${IMX}-usbarmory-tzns.dtb
+		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
+	if test "${IMX}" = "imx6ulz"; then \
+		cd linux-${LINUX_VER} && \
+			KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
+			KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
+			LOCALVERSION=${LOCALVERSION} \
+			ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
+			make -j${JOBS} ${IMX}-usbarmory-tzns.dtb; \
+	fi
 
 #### mxc-scc2 ####
 
