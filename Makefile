@@ -173,13 +173,14 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
+		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-tzns.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dts; \
 	fi
 	cd linux-${LINUX_VER} && \
 		KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
 		KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
 		LOCALVERSION=${LOCALVERSION} \
 		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
-		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
+		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb ${IMX}-usbarmory-tzns.dtb
 
 #### mxc-scc2 ####
 
@@ -260,6 +261,14 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 		cd mxc-scc2-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ulz"; then \
+		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-tzns-${LINUX_VER}${LOCALVERSION}.dtb ; \
+		KNL_SUM=$(shell sha256sum linux-${LINUX_VER}/arch/arm/boot/zImage | cut -d ' ' -f 1) ; \
+		DTB_SUM=$(shell sha256sum linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dtb | cut -d ' ' -f 1) ; \
+		cat armory-boot.conf.template | \
+			sed -e 's/KNL_SUM/'"$${KNL_SUM}"'/' | \
+			sed -e 's/DTB_SUM/'"$${DTB_SUM}"'/' | \
+			sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' \
+			> linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/armory-boot.conf ; \
 		cd mxs-dcp-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ul"; then \
