@@ -274,11 +274,11 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-tzns-${LINUX_VER}${LOCALVERSION}.dtb ; \
 		KNL_SUM=$(shell sha256sum linux-${LINUX_VER}/arch/arm/boot/zImage | cut -d ' ' -f 1) ; \
 		DTB_SUM=$(shell sha256sum linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dtb | cut -d ' ' -f 1) ; \
-		cat armory-boot.conf.template | \
+		cat armory-boot-nonsecure.conf.template | \
 			sed -e 's/KNL_SUM/'"$${KNL_SUM}"'/' | \
 			sed -e 's/DTB_SUM/'"$${DTB_SUM}"'/' | \
 			sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' \
-			> linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/armory-boot.conf ; \
+			> linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/armory-boot-nonsecure.conf ; \
 		cd mxs-dcp-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ul"; then \
