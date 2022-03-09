@@ -10,7 +10,7 @@ BUILD_HOST=f-secure-foundry
 LOCALVERSION=-0
 UBOOT_VER=2021.10
 ARMORYCTL_VER=1.2
-CRUCIBLE_VER=2021.05.03
+CRUCIBLE_VER=2021.12.17
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
