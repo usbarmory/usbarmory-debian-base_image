@@ -32,8 +32,8 @@ When building the image under Docker the `--privileged` option is required to
 give privileges for handling loop devices, example:
 
 ```
-docker build --rm -t armory ./
-docker run --rm -it --privileged -v $(pwd):/opt/armory --name armory armory
+docker build --rm --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t armory ./
+docker run --rm -it --privileged -v $(pwd):/usbarmory --name armory armory
 ```
 
 On Mac OS X the build needs to be done in a case-sensitive filesystem. Such
