@@ -4,9 +4,9 @@ JOBS=2
 LINUX_VER=5.15.27
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
-KBUILD_BUILD_HOST=f-secure-foundry
+KBUILD_BUILD_HOST=usbarmory
 BUILD_USER=usbarmory
-BUILD_HOST=f-secure-foundry
+BUILD_HOST=usbarmory
 LOCALVERSION=-0
 UBOOT_VER=2021.10
 ARMORYCTL_VER=1.2
@@ -114,8 +114,8 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	@if test "${V}" = "mark-two"; then \
 		sudo chroot rootfs systemctl mask haveged.service; \
 	fi
-	sudo wget https://f-secure-foundry.github.io/keys/gpg-andrej.asc -O rootfs/tmp/gpg-andrej.asc
-	sudo wget https://f-secure-foundry.github.io/keys/gpg-andrea.asc -O rootfs/tmp/gpg-andrea.asc
+	sudo wget https://usbarmory.github.io/keys/gpg-andrej.asc -O rootfs/tmp/gpg-andrej.asc
+	sudo wget https://usbarmory.github.io/keys/gpg-andrea.asc -O rootfs/tmp/gpg-andrea.asc
 	sudo chroot rootfs apt-key add /tmp/gpg-andrej.asc
 	sudo chroot rootfs apt-key add /tmp/gpg-andrea.asc
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
