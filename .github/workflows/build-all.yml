@@ -62,8 +62,8 @@ jobs:
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://f-secure-foundry.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://f-secure-foundry.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
+        wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
@@ -91,7 +91,7 @@ jobs:
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://f-secure-foundry.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://f-secure-foundry.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
+        wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
+        wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}

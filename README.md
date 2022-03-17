@@ -1,9 +1,9 @@
-# USB armory Debian base image [![Build Status](https://github.com/f-secure-foundry/usbarmory-debian-base_image/workflows/Build-All/badge.svg)](https://github.com/f-secure-foundry/usbarmory-debian-base_image/actions)
+# USB armory Debian base image [![Build Status](https://github.com/usbarmory/usbarmory-debian-base_image/workflows/Build-All/badge.svg)](https://github.com/usbarmory/usbarmory-debian-base_image/actions)
 
 The Makefile in this repository allows generation of a basic Debian
-installation for the [USB armory](https://github.com/f-secure-foundry/usbarmory).
+installation for the [USB armory](https://github.com/usbarmory/usbarmory).
 
-Pre-compiled releases are [available](https://github.com/f-secure-foundry/usbarmory-debian-base_image/releases).
+Pre-compiled releases are [available](https://github.com/usbarmory/usbarmory-debian-base_image/releases).
 
 ## Pre-requisites
 
@@ -104,8 +104,8 @@ usb 1-1: Manufacturer: Freescale SemiConductor Inc
 hid-generic 0003:15A2:0080.0003: hiddev96,hidraw1: USB HID v1.10 Device [Freescale SemiConductor Inc  SE Blank 6ULL] on usb-0000:00:14.0-1/input0
 ```
 
-Load the [armory-ums](https://github.com/f-secure-foundry/armory-ums/releases)
-firmware using the [armory-boot-usb](https://github.com/f-secure-foundry/armory-boot/tree/master/cmd/armory-boot-usb) utility:
+Load the [armory-ums](https://github.com/usbarmory/armory-ums/releases)
+firmware using the [armory-boot-usb](https://github.com/usbarmory/armory-boot/tree/master/cmd/armory-boot-usb) utility:
 
 ```
 sudo armory-boot-usb -i armory-ums.imx
@@ -129,17 +129,17 @@ To aid initial testing the base image configures the board LED to reflect CPU
 load average, via the Linux Heartbeat Trigger driver. In case this is
 undesired, the heartbeat can be disabled by removing the `ledtrig_heartbeat`
 module in `/etc/modules`. More information about LED control
-[here](https://github.com/f-secure-foundry/usbarmory/wiki/GPIOs#led-control).
+[here](https://github.com/usbarmory/usbarmory/wiki/GPIOs#led-control).
 
 ## Resizing
 
 The default image is 4GB of size, to use the full microSD/eMMC space a new partition
 can be added or the existing one can be resized as described in the USB armory
-[FAQ](https://github.com/f-secure-foundry/usbarmory/wiki/Frequently-Asked-Questions-(FAQ)).
+[FAQ](https://github.com/usbarmory/usbarmory/wiki/Frequently-Asked-Questions-(FAQ)).
 
 ## Additional resources
 
 [Project page](https://foundry.f-secure.com/usbarmory)  
-[Documentation](https://github.com/f-secure-foundry/usbarmory/wiki)  
-[Board schematics, layout and support files](https://github.com/f-secure-foundry/usbarmory)  
+[Documentation](https://github.com/usbarmory/usbarmory/wiki)  
+[Board schematics, layout and support files](https://github.com/usbarmory/usbarmory)  
 [Discussion group](https://groups.google.com/d/forum/usbarmory)  

@@ -13,12 +13,12 @@ ARMORYCTL_VER=1.2
 CRUCIBLE_VER=2021.12.17
 APT_GPG_KEY=CEADE0CF01939B21
 
-USBARMORY_REPO=https://raw.githubusercontent.com/f-secure-foundry/usbarmory/master
-ARMORYCTL_REPO=https://github.com/f-secure-foundry/armoryctl
-CRUCIBLE_REPO=https://github.com/f-secure-foundry/crucible
-MXC_SCC2_REPO=https://github.com/f-secure-foundry/mxc-scc2
-MXS_DCP_REPO=https://github.com/f-secure-foundry/mxs-dcp
-CAAM_KEYBLOB_REPO=https://github.com/f-secure-foundry/caam-keyblob
+USBARMORY_REPO=https://raw.githubusercontent.com/usbarmory/usbarmory/master
+ARMORYCTL_REPO=https://github.com/usbarmory/armoryctl
+CRUCIBLE_REPO=https://github.com/usbarmory/crucible
+MXC_SCC2_REPO=https://github.com/usbarmory/mxc-scc2
+MXS_DCP_REPO=https://github.com/usbarmory/mxs-dcp
+CAAM_KEYBLOB_REPO=https://github.com/usbarmory/caam-keyblob
 IMG_VERSION=${V}-${BOOT_PARSED}-debian_bullseye-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell sudo /sbin/losetup -f)
 
