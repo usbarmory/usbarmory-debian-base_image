@@ -139,7 +139,7 @@ can be added or the existing one can be resized as described in the USB armory
 
 ## Additional resources
 
-[Project page](https://foundry.f-secure.com/usbarmory)  
+[Project page](https://github.com/usbarmory/usbarmory)  
 [Documentation](https://github.com/usbarmory/usbarmory/wiki)  
 [Board schematics, layout and support files](https://github.com/usbarmory/usbarmory)  
 [Discussion group](https://groups.google.com/d/forum/usbarmory)  
