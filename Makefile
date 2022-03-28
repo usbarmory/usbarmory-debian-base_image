@@ -171,7 +171,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		gpg --verify linux-${LINUX_VER}.tar.sign; \
 		tar xfm linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
 	fi
-	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
+	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
 	fi
@@ -183,7 +183,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
 		KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
 		LOCALVERSION=${LOCALVERSION} \
 		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
-		make -j${JOBS} zImage modules ${IMX}-usbarmory.dtb
+		make -j${JOBS} olddefconfig zImage modules ${IMX}-usbarmory.dtb
 	if test "${IMX}" = "imx6ulz"; then \
 		cd linux-${LINUX_VER} && \
 			KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
