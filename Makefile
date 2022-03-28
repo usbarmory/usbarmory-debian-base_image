@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS=2
 
-LINUX_VER=5.15.27
+LINUX_VER=5.15.31
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=usbarmory
@@ -109,6 +109,7 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	sudo chroot rootfs systemctl mask display-manager.service
 	sudo chroot rootfs systemctl mask hwclock-save.service
 	@if test "${V}" = "mark-one"; then \
+		sudo install -m 644 -o root -g root conf/haveged.service rootfs/etc/systemd/system/haveged.service; \
 		sudo chroot rootfs systemctl mask rng-tools.service; \
 	fi
 	@if test "${V}" = "mark-two"; then \
