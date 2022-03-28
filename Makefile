@@ -8,7 +8,7 @@ KBUILD_BUILD_HOST=usbarmory
 BUILD_USER=usbarmory
 BUILD_HOST=usbarmory
 LOCALVERSION=-0
-UBOOT_VER=2021.10
+UBOOT_VER=2022.01
 ARMORYCTL_VER=1.2
 CRUCIBLE_VER=2021.12.17
 APT_GPG_KEY=CEADE0CF01939B21
@@ -64,7 +64,6 @@ u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 	@if test "${V}" = "mark-one"; then \
 		cd u-boot-${UBOOT_VER} && \
 		wget ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
-		patch -p1 < 0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
 		make usbarmory_config; \
 	elif test "${V}" = "mark-two"; then \
 		cd u-boot-${UBOOT_VER} && \
