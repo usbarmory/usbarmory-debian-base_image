@@ -227,7 +227,6 @@ caam-keyblob-master/caam-keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch
 #### dtb ####
 
 extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
-	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-spi.dts
