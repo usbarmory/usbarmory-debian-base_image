@@ -28,28 +28,29 @@ V ?= mark-two
 BOOT ?= uSD
 BOOT_PARSED=$(shell echo "${BOOT}" | tr '[:upper:]' '[:lower:]')
 
-check_version:
-	@if test "${V}" = "mark-one"; then \
-		if test "${BOOT}" != "uSD"; then \
-			echo "invalid target, mark-one BOOT options are: uSD"; \
-			exit 1; \
-		elif test "${IMX}" != "imx53"; then \
-			echo "invalid target, mark-one IMX options are: imx53"; \
-			exit 1; \
-		fi \
-	elif test "${V}" = "mark-two"; then \
-		if test "${BOOT}" != "uSD" && test "${BOOT}" != eMMC; then \
-			echo "invalid target, mark-two BOOT options are: uSD, eMMC"; \
-			exit 1; \
-		elif test "${IMX}" != "imx6ul" && test "${IMX}" != "imx6ulz"; then \
-			echo "invalid target, mark-two IMX options are: imx6ul, imx6ulz"; \
-			exit 1; \
-		fi \
-	else \
-		echo "invalid target - V options are: mark-one, mark-two"; \
-		exit 1; \
-	fi
-	@echo "target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT}"
+ifeq ("${V}","mark-one")
+    ifneq ("${BOOT}","uSD")
+        $(error 'invalid target, mark-one BOOT options are: uSD')
+    endif
+    ifneq ("${IMX}","imx53")
+        $(error 'invalid target, mark-one IMX options are: imx53')
+    endif
+endif
+
+ifeq ("${V}","mark-two")
+    ifeq (,$(filter "${BOOT}", "uSD" "eMMC"))
+        $(error 'invalid target, mark-two BOOT options are: uSD, eMMC')
+    endif
+    ifeq (,$(filter "${IMX}", "imx6ul" "imx6ulz"))
+        $(error 'invalid target, mark-two IMX options are: imx6ul, imx6ulz')
+    endif
+endif
+
+ifeq (,$(filter "${V}", "mark-one" "mark-two"))
+    $(error 'invalid target - V options are: mark-one, mark-two')
+endif
+
+$(info target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT})
 
 #### u-boot ####
 
@@ -57,7 +58,7 @@ u-boot-${UBOOT_VER}.tar.bz2:
 	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
 	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
 
-u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
+u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xfm u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
@@ -78,8 +79,7 @@ u-boot-${UBOOT_VER}/u-boot.bin: check_version u-boot-${UBOOT_VER}.tar.bz2
 
 #### debian ####
 
-DEBIAN_DEPS := check_version
-DEBIAN_DEPS += linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
+DEBIAN_DEPS := linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 DEBIAN_DEPS += linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 DEBIAN_DEPS += armoryctl_${ARMORYCTL_VER}_armhf.deb crucible_${CRUCIBLE_VER}_armhf.deb
 usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
@@ -163,7 +163,7 @@ linux-${LINUX_VER}.tar.xz:
 	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
 	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
 
-linux-${LINUX_VER}/arch/arm/boot/zImage: check_version linux-${LINUX_VER}.tar.xz
+linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	@if [ ! -d "linux-${LINUX_VER}" ]; then \
 		unxz --keep linux-${LINUX_VER}.tar.xz; \
 		gpg --verify linux-${LINUX_VER}.tar.sign; \
@@ -226,7 +226,7 @@ caam-keyblob-master/caam-keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch
 
 #### dtb ####
 
-extra-dtb: check_version linux-${LINUX_VER}/arch/arm/boot/zImage
+extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/usbarmory_linux-${LINUX_VER_MAJOR}.config -O linux-${LINUX_VER}/.config
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-host.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/imx53-usbarmory-gpio.dts
@@ -237,8 +237,7 @@ extra-dtb: check_version linux-${LINUX_VER}/arch/arm/boot/zImage
 
 #### linux-image-deb ####
 
-KERNEL_DEPS := check_version
-KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/zImage
+KERNEL_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
 ifeq ($(V),mark-one)
 KERNEL_DEPS += extra-dtb mxc-scc2
 endif
@@ -294,8 +293,7 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 
 #### linux-headers-deb ####
 
-HEADER_DEPS := check_version
-HEADER_DEPS += linux-${LINUX_VER}/arch/arm/boot/zImage
+HEADER_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
 linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(HEADER_DEPS)
 	mkdir -p linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}${LOCALVERSION}/build}
 	cd linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION} ; ln -sf build source
@@ -376,7 +374,7 @@ armoryctl-deb: armoryctl_${ARMORYCTL_VER}_armhf.deb
 crucible: crucible-${CRUCIBLE_VER}/crucible
 crucible-deb: crucible_${CRUCIBLE_VER}_armhf.deb
 
-release: check_version usbarmory-${IMG_VERSION}.raw.xz
+release: usbarmory-${IMG_VERSION}.raw.xz
 	sha256sum usbarmory-${IMG_VERSION}.raw.xz > usbarmory-${IMG_VERSION}.raw.xz.sha256
 
 clean:
