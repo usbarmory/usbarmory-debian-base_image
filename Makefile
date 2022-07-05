@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-JOBS=2
+JOBS ?= 2
 
 LINUX_VER=5.15.52
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
@@ -238,10 +238,12 @@ extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 KERNEL_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
 ifeq ($(V),mark-one)
-KERNEL_DEPS += extra-dtb mxc-scc2
+KERNEL_DEPS += mxc-scc2-master/mxc-scc2.ko
+KERNEL_DEPS += extra-dtb
 endif
 ifeq ($(V),mark-two)
-KERNEL_DEPS += mxs-dcp caam-keyblob
+KERNEL_DEPS += mxs-dcp-master/mxs-dcp.ko
+KERNEL_DEPS += caam-keyblob-master/caam_keyblob.ko
 endif
 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(KERNEL_DEPS)
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
@@ -313,10 +315,10 @@ linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armh
 #### armoryctl ####
 
 armoryctl-${ARMORYCTL_VER}.zip:
-	wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O armoryctl-v${ARMORYCTL_VER}.zip
+	wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O armoryctl-${ARMORYCTL_VER}.zip
 
 armoryctl-${ARMORYCTL_VER}: armoryctl-${ARMORYCTL_VER}.zip
-	unzip -o armoryctl-v${ARMORYCTL_VER}.zip
+	unzip -o armoryctl-${ARMORYCTL_VER}.zip
 
 armoryctl-${ARMORYCTL_VER}/armoryctl: armoryctl-${ARMORYCTL_VER}
 	cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make
@@ -335,10 +337,10 @@ armoryctl_${ARMORYCTL_VER}_armhf.deb: armoryctl-${ARMORYCTL_VER}/armoryctl
 #### crucible ####
 
 crucible-${CRUCIBLE_VER}.zip:
-	wget ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O crucible-v${CRUCIBLE_VER}.zip
+	wget ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O crucible-${CRUCIBLE_VER}.zip
 
 crucible-${CRUCIBLE_VER}: crucible-${CRUCIBLE_VER}.zip
-	unzip -o crucible-v${CRUCIBLE_VER}.zip
+	unzip -o crucible-${CRUCIBLE_VER}.zip
 
 crucible-${CRUCIBLE_VER}/crucible: crucible-${CRUCIBLE_VER}
 	cd crucible-${CRUCIBLE_VER} && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make crucible
