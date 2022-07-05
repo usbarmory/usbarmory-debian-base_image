@@ -148,7 +148,7 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	fi
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
-	sudo rm rootfs/usr/bin/qemu-arm-static
+	-sudo rm rootfs/usr/bin/qemu-arm-static
 	sudo umount rootfs
 
 #### debian-xz ####
