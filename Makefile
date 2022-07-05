@@ -26,6 +26,7 @@ LOSETUP_DEV=$(shell sudo /sbin/losetup -f)
 
 V ?= mark-two
 BOOT ?= uSD
+IMX  ?= imx6ulz
 BOOT_PARSED=$(shell echo "${BOOT}" | tr '[:upper:]' '[:lower:]')
 
 ifeq ("${V}","mark-one")
