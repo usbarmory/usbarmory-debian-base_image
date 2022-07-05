@@ -221,7 +221,7 @@ caam-keyblob-master.zip:
 caam-keyblob-master: caam-keyblob-master.zip
 	unzip -o caam-keyblob-master.zip
 
-caam-keyblob-master/caam-keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch/arm/boot/zImage
+caam-keyblob-master/caam_keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch/arm/boot/zImage
 	cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### dtb ####
@@ -367,7 +367,7 @@ linux-image-deb: linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOC
 linux-headers-deb: linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 mxs-dcp: mxs-dcp-master/mxs-dcp.ko
 mxc-scc2: mxc-scc2-master/mxc-scc2.ko
-caam-keyblob: caam-keyblob-master/caam-keyblob.ko
+caam-keyblob: caam-keyblob-master/caam_keyblob.ko
 armoryctl: armoryctl-${ARMORYCTL_VER}/armoryctl
 armoryctl-deb: armoryctl_${ARMORYCTL_VER}_armhf.deb
 crucible: crucible-${CRUCIBLE_VER}/crucible
