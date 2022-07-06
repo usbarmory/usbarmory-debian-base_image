@@ -4,7 +4,8 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf \
     git gnupg make parted rsync qemu-user-static wget xz-utils zip \
-    debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio
+    debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio \
+    apt-utils
 
 # create user "builder" with sudo privileges
 ARG GID
