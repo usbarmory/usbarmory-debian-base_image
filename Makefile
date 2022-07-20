@@ -96,6 +96,7 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	sudo qemu-debootstrap \
 		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd,systemd-timesyncd \
 		--arch=armhf bullseye rootfs http://deb.debian.org/debian/
+	sudo chroot rootfs mount -t proc none /proc
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
 	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
@@ -143,12 +144,15 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 		sudo rm rootfs/tmp/crucible_${CRUCIBLE_VER}_armhf.deb; \
 		if test "${BOOT}" = "uSD"; then \
 			echo "/dev/mmcblk0 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
+			sudo sed -i -e 's@/dev/loop\+[0-9]@/dev/mmcblk0p1@' rootfs/boot/armory-boot.conf rootfs/boot/armory-boot-nonsecure.conf; \
 		else \
 			echo "/dev/mmcblk1 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
+			sudo sed -i -e 's@/dev/loop\+[0-9]@/dev/mmcblk1p1@' rootfs/boot/armory-boot.conf rootfs/boot/armory-boot-nonsecure.conf; \
 		fi \
 	fi
 	sudo chroot rootfs apt-get clean
 	sudo chroot rootfs fake-hwclock
+	sudo chroot rootfs umount /proc
 	-sudo rm rootfs/usr/bin/qemu-arm-static
 	sudo umount rootfs
 
