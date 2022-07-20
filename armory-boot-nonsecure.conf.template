@@ -7,5 +7,5 @@
     "/boot/imx6ulz-usbarmory-tzns-YYYY.dtb",
     "DTB_SUM"
   ],
-  "cmdline": "console=ttymxc1,115200 root=/dev/mmcblk0p1 rootwait rw cpuidle.off=1"
+  "cmdline": "console=ttymxc1,115200 root=__FIXME_ROOTDEV__ rootwait rw cpuidle.off=1"
 }
