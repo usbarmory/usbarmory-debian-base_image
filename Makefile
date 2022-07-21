@@ -142,12 +142,14 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 		sudo cp crucible_${CRUCIBLE_VER}_armhf.deb rootfs/tmp/; \
 		sudo chroot rootfs /usr/bin/dpkg -i /tmp/crucible_${CRUCIBLE_VER}_armhf.deb; \
 		sudo rm rootfs/tmp/crucible_${CRUCIBLE_VER}_armhf.deb; \
-		if test "${BOOT}" = "uSD" -a "${IMX}" = "imx6ulz"; then \
-			echo "/dev/mmcblk0 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
-			sudo sed -i -e 's@/dev/loop\+[0-9]@/dev/mmcblk0p1@' rootfs/boot/armory-boot.conf rootfs/boot/armory-boot-nonsecure.conf; \
-		else \
-			echo "/dev/mmcblk1 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
-			sudo sed -i -e 's@/dev/loop\+[0-9]@/dev/mmcblk1p1@' rootfs/boot/armory-boot.conf rootfs/boot/armory-boot-nonsecure.conf; \
+		if test "${IMX}" = "imx6ulz"; then \
+			if test "${BOOT}" = "uSD"; then \
+				echo "/dev/mmcblk0 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
+				sudo sed -i -e 's@/dev/loop\+[0-9]@/dev/mmcblk0p1@' rootfs/boot/armory-boot.conf rootfs/boot/armory-boot-nonsecure.conf; \
+			else \
+				echo "/dev/mmcblk1 0x100000 0x2000 0x2000" | sudo tee rootfs/etc/fw_env.config; \
+				sudo sed -i -e 's@/dev/loop\+[0-9]@/dev/mmcblk1p1@' rootfs/boot/armory-boot.conf rootfs/boot/armory-boot-nonsecure.conf; \
+			fi \
 		fi \
 	fi
 	sudo chroot rootfs apt-get clean
