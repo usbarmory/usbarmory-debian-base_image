@@ -6,5 +6,5 @@ fi
 
 if [ -f /boot/imx6ulz-usbarmory-tzns-YYYY.dtb ]; then
   ROOTDEV=$(findmnt -n -o SOURCE --target /boot/zImage-YYYY-usbarmory)
-  sed -i -e 's@__FIXME_ROOTDEV__@'"$ROOTDEV"'@' /boot/armory-boot.conf /boot/armory-boot-nonsecure.conf
+  sed -i -e 's@__ROOTDEV__@'"$ROOTDEV"'@' /boot/armory-boot.conf /boot/armory-boot-nonsecure.conf
 fi

@@ -7,5 +7,6 @@
     "/boot/imx6ulz-usbarmory-tzns-YYYY.dtb",
     "DTB_SUM"
   ],
-  "cmdline": "console=ttymxc1,115200 root=__FIXME_ROOTDEV__ rootwait rw cpuidle.off=1"
+  # __ROOTDEV__ set by postinst_template_linux
+  "cmdline": "console=ttymxc1,115200 root=__ROOTDEV__ rootwait rw cpuidle.off=1"
 }
