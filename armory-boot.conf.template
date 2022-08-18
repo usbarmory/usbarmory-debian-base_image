@@ -7,6 +7,5 @@
     "/boot/imx6ulz-usbarmory-default-YYYY.dtb",
     "DTB_SUM"
   ],
-  # __ROOTDEV__ set by postinst_template_linux
   "cmdline": "console=ttymxc1,115200 root=__ROOTDEV__ rootwait rw"
 }
