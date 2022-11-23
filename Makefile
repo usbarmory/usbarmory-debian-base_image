@@ -70,11 +70,16 @@ u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 		cd u-boot-${UBOOT_VER} && \
 		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
 		patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		make usbarmory-mark-two_defconfig; \
 		if test "${BOOT}" = "eMMC"; then \
-			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' .config; \
-			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' .config; \
-		fi \
+			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' configs/usbarmory-mark-two_defconfig; \
+			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' configs/usbarmory-mark-two_defconfig; \
+		fi; \
+		if test "${IMX}" = "imx6ul"; then \
+			sed -i -e 's/CONFIG_SYS_DDR_512MB=y/# CONFIG_SYS_DDR_512MB is not set/' configs/usbarmory-mark-two_defconfig; \
+			sed -i -e 's/# CONFIG_SYS_DDR_1GB is not set/CONFIG_SYS_DDR_1GB=y/' configs/usbarmory-mark-two_defconfig; \
+			sed -i -e 's/fdtfile=imx6ulz-usbarmory.dtb/fdtfile=imx6ul-usbarmory.dtb/' include/configs/usbarmory-mark-two.h; \
+		fi; \
+		make usbarmory-mark-two_defconfig; \
 	fi
 	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
 
