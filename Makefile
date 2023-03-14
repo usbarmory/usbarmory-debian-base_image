@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 JOBS ?= 2
 
-LINUX_VER=5.15.86
+LINUX_VER=6.1.19
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 KBUILD_BUILD_USER=usbarmory
 KBUILD_BUILD_HOST=usbarmory
@@ -172,8 +172,8 @@ usbarmory-${IMG_VERSION}.raw.xz: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER
 #### linux ####
 
 linux-${LINUX_VER}.tar.xz:
-	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
-	wget https://www.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
+	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
+	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
 
 linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	@if [ ! -d "linux-${LINUX_VER}" ]; then \
