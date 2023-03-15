@@ -47,8 +47,8 @@ jobs:
         boot: [uSD]
         device: [mark-one]
     steps:
-    - uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
-    - uses: actions/setup-go@v2
+    - uses: actions/checkout@v3.3.0
+    - uses: actions/setup-go@v3.5.0
       with:
         go-version: '1.18.3'
 
@@ -76,8 +76,8 @@ jobs:
         boot: [uSD, eMMC]
         device: [mark-two]
     steps:
-    - uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
-    - uses: actions/setup-go@v2
+    - uses: actions/checkout@v3.3.0
+    - uses: actions/setup-go@v3.5.0
       with:
         go-version: '1.18.3'
 
