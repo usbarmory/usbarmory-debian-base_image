@@ -27,6 +27,7 @@ LOSETUP_DEV=$(shell sudo /sbin/losetup -f)
 V ?= mark-two
 BOOT ?= uSD
 IMX  ?= imx6ulz
+MEM  ?= 512M
 BOOT_PARSED=$(shell echo "${BOOT}" | tr '[:upper:]' '[:lower:]')
 
 ifeq ("${V}","mark-one")
@@ -45,13 +46,16 @@ ifeq ("${V}","mark-two")
     ifeq (,$(filter "${IMX}", "imx6ul" "imx6ulz"))
         $(error 'invalid target, mark-two IMX options are: imx6ul, imx6ulz')
     endif
+    ifeq (,$(filter "${MEM}", "512M" "1G"))
+        $(error 'invalid target, mark-two MEM options are: 512M, 1G')
+    endif
 endif
 
 ifeq (,$(filter "${V}", "mark-one" "mark-two"))
     $(error 'invalid target - V options are: mark-one, mark-two')
 endif
 
-$(info target: USB armory V=${V} IMX=${IMX} BOOT=${BOOT})
+$(info target: USB armory V=${V} IMX=${IMX} MEM=${MEM} BOOT=${BOOT})
 
 #### u-boot ####
 
@@ -75,9 +79,11 @@ u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' configs/usbarmory-mark-two_defconfig; \
 		fi; \
 		if test "${IMX}" = "imx6ul"; then \
+			sed -i -e 's/fdtfile=imx6ulz-usbarmory.dtb/fdtfile=imx6ul-usbarmory.dtb/' include/configs/usbarmory-mark-two.h; \
+		fi; \
+		if test "${MEM}" = "1G"; then \
 			sed -i -e 's/CONFIG_SYS_DDR_512MB=y/# CONFIG_SYS_DDR_512MB is not set/' configs/usbarmory-mark-two_defconfig; \
 			sed -i -e 's/# CONFIG_SYS_DDR_1GB is not set/CONFIG_SYS_DDR_1GB=y/' configs/usbarmory-mark-two_defconfig; \
-			sed -i -e 's/fdtfile=imx6ulz-usbarmory.dtb/fdtfile=imx6ul-usbarmory.dtb/' include/configs/usbarmory-mark-two.h; \
 		fi; \
 		make usbarmory-mark-two_defconfig; \
 	fi
@@ -183,10 +189,10 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 	fi
 	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
+		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory.dts; \
 	fi
 	if test "${IMX}" = "imx6ulz"; then \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory-tzns.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dts; \
+		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory-tzns.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/${IMX}-usbarmory-tzns.dts; \
 	fi
 	cd linux-${LINUX_VER} && \
 		KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
