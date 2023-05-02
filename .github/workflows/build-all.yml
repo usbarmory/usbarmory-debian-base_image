@@ -74,6 +74,7 @@ jobs:
       matrix:
         arch: [imx6ul, imx6ulz]
         boot: [uSD, eMMC]
+        mem: [512M, 1G]
         device: [mark-two]
     steps:
     - uses: actions/checkout@v3.3.0
@@ -94,4 +95,4 @@ jobs:
         wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} MEM=${{ matrix.mem }} BOOT=${{ matrix.boot }}
