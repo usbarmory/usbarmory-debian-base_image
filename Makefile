@@ -19,7 +19,7 @@ CRUCIBLE_REPO=https://github.com/usbarmory/crucible
 MXC_SCC2_REPO=https://github.com/usbarmory/mxc-scc2
 MXS_DCP_REPO=https://github.com/usbarmory/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/usbarmory/caam-keyblob
-IMG_VERSION=${V}-${BOOT_PARSED}-debian_bullseye-base_image-$(shell /bin/date -u "+%Y%m%d")
+IMG_VERSION=${V}-${BOOT_PARSED}-debian_bookworm-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell sudo /sbin/losetup -f)
 
 .DEFAULT_GOAL := release
@@ -105,8 +105,8 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
 	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
-		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd,systemd-timesyncd \
-		--arch=armhf bullseye rootfs http://deb.debian.org/debian/
+		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools-debian,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd,systemd-timesyncd \
+		--arch=armhf bookworm rootfs http://deb.debian.org/debian/
 	sudo chroot rootfs mount -t proc none /proc
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
