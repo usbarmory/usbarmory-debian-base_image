@@ -69,6 +69,8 @@ u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 	cd u-boot-${UBOOT_VER} && make distclean
 	@if test "${V}" = "mark-one"; then \
 		cd u-boot-${UBOOT_VER} && \
+		wget ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
+		patch -p1 < 0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
 		make usbarmory_config; \
 	elif test "${V}" = "mark-two"; then \
 		cd u-boot-${UBOOT_VER} && \
