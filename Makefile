@@ -119,6 +119,7 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	sudo chroot rootfs systemctl mask getty-static.service
 	sudo chroot rootfs systemctl mask display-manager.service
 	sudo chroot rootfs systemctl mask hwclock-save.service
+	sudo chroot rootfs systemctl mask systemd-binfmt.service
 	@if test "${V}" = "mark-one"; then \
 		sudo install -m 644 -o root -g root conf/haveged.service rootfs/etc/systemd/system/haveged.service; \
 		sudo chroot rootfs systemctl mask rng-tools.service; \
