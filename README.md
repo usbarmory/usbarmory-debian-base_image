@@ -60,10 +60,10 @@ The following output files are produced:
 
 ```
 # For the USB armory Mk II
-usbarmory-mark-two-debian_bullseye-base_image-YYYYMMDD.raw
+usbarmory-mark-two-debian_bookworm-base_image-YYYYMMDD.raw
 
 # For the USB armory Mk I
-usbarmory-mark-one-debian_bullseye-base_image-YYYYMMDD.raw
+usbarmory-mark-one-debian_bookworm-base_image-YYYYMMDD.raw
 ```
 
 ## Installation
@@ -77,12 +77,12 @@ correct one. Errors in target specification will result in disk corruption.
 
 Linux (verify target from terminal using `dmesg`):
 ```
-sudo dd if=usbarmory-*-debian_bullseye-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
+sudo dd if=usbarmory-*-debian_bookworm-base_image-YYYYMMDD.raw of=/dev/sdX bs=1M conv=fsync
 ```
 
 Mac OS X (verify target from terminal with `diskutil list`):
 ```
-sudo dd if=usbarmory-*-debian_bullseye-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
+sudo dd if=usbarmory-*-debian_bookworm-base_image-YYYYMMDD.raw of=/dev/rdiskN bs=1m
 ```
 
 On Windows, and other OSes, alternatively the [Etcher](https://etcher.io)
