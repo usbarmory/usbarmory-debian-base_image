@@ -126,10 +126,8 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	@if test "${V}" = "mark-two"; then \
 		sudo chroot rootfs systemctl mask haveged.service; \
 	fi
-	sudo wget https://usbarmory.github.io/keys/gpg-andrej.asc -O rootfs/tmp/gpg-andrej.asc
-	sudo wget https://usbarmory.github.io/keys/gpg-andrea.asc -O rootfs/tmp/gpg-andrea.asc
-	sudo chroot rootfs apt-key add /tmp/gpg-andrej.asc
-	sudo chroot rootfs apt-key add /tmp/gpg-andrea.asc
+	sudo wget https://usbarmory.github.io/keys/gpg-andrej.asc -O rootfs/etc/apt/trusted.gpg.d/usbarmory-andrej.asc
+	sudo wget https://usbarmory.github.io/keys/gpg-andrea.asc -O rootfs/etc/apt/trusted.gpg.d/usbarmory-andrea.asc
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
 	echo "g_ether" | sudo tee -a rootfs/etc/modules
