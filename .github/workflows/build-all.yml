@@ -39,7 +39,7 @@ on: [push]
 
 jobs:
   mark-one:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -50,7 +50,7 @@ jobs:
     - uses: actions/checkout@v3.3.0
     - uses: actions/setup-go@v3.5.0
       with:
-        go-version: '1.18.3'
+        go-version: '1.20.6'
 
     - name: Prerequisites
       run: |
@@ -68,7 +68,7 @@ jobs:
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
   mark-two:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -80,7 +80,7 @@ jobs:
     - uses: actions/checkout@v3.3.0
     - uses: actions/setup-go@v3.5.0
       with:
-        go-version: '1.20.2'
+        go-version: '1.20.6'
 
     - name: Prerequisites
       run: |
