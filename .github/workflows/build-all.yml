@@ -69,6 +69,13 @@ jobs:
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
+    - uses: actions/upload-artifact@v3
+      with:
+        name: build
+        path: |
+          usbarmory*.raw.xz
+          usbarmory*.raw.xz.sha256
+
   mark-two:
     runs-on: ubuntu-22.04
     strategy:
@@ -98,3 +105,10 @@ jobs:
         wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} MEM=${{ matrix.mem }} BOOT=${{ matrix.boot }}
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: build
+        path: |
+          usbarmory*.raw.xz
+          usbarmory*.raw.xz.sha256
