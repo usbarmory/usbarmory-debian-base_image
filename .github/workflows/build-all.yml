@@ -1,5 +1,7 @@
 name: Build-All
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 # TODO:
 # - Verify output binary
