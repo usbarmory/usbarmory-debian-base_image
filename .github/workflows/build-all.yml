@@ -71,7 +71,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: build
+        name: build-${{ matrix.device }}-${{ matrix.arch }}-${{ matrix.boot }}
         path: |
           usbarmory*.raw.xz
           usbarmory*.raw.xz.sha256
@@ -108,7 +108,7 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: build
+        name: build-${{ matrix.device }}-${{ matrix.arch }}-${{ matrix.boot }}
         path: |
           usbarmory*.raw.xz
           usbarmory*.raw.xz.sha256
