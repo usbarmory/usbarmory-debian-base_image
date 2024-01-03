@@ -40,50 +40,13 @@ on:
 #
 
 jobs:
-  mark-one:
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [imx53]
-        boot: [uSD]
-        device: [mark-one]
-    steps:
-    - uses: actions/checkout@v3.3.0
-    - uses: actions/setup-go@v3.5.0
-      with:
-        go-version: '1.22.1'
-
-    - name: Prerequisites
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf git \
-          gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
-          sudo dirmngr bison flex libssl-dev kmod
-
-    - name: Import Signing Keys
-      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
-
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: build-${{ matrix.device }}-${{ matrix.arch }}-${{ matrix.boot }}
-        path: |
-          usbarmory*.raw.xz
-          usbarmory*.raw.xz.sha256
-
   mark-two:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        arch: [imx6ul, imx6ulz]
+        arch: [imx6ulz]
         boot: [uSD, eMMC]
-        mem: [512M, 1G]
         device: [mark-two]
     steps:
     - uses: actions/checkout@v3.3.0
@@ -104,7 +67,7 @@ jobs:
         wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} MEM=${{ matrix.mem }} BOOT=${{ matrix.boot }}
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
     - uses: actions/upload-artifact@v3.1.3
       with:
