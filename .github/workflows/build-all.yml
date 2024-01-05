@@ -40,13 +40,14 @@ on:
 #
 
 jobs:
-  mark-two:
+  build:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         arch: [imx6ulz]
         boot: [uSD, eMMC]
+        mem: [512M]
         device: [mark-two]
     steps:
     - uses: actions/checkout@v3.3.0
@@ -67,7 +68,7 @@ jobs:
         wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
         wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
 
-    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
+    - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} MEM=${{ matrix.mem }} BOOT=${{ matrix.boot }}
 
     - uses: actions/upload-artifact@v3.1.3
       with:
