@@ -122,11 +122,11 @@ to the internal eMMC.
 ## Connecting
 
 After being booted, the image uses Ethernet over USB emulation (CDC Ethernet)
-to communicate with the host, with assigned IP address 10.0.0.1 (using 10.0.0.2
-as gateway). Connection can be accomplished via SSH to 10.0.0.1, with default
+to communicate with the host, with assigned IP address 10.10.10.1 (using 10.10.10.2
+as gateway). Connection can be accomplished via SSH to 10.10.10.1, with default
 user `usbarmory` and password `usbarmory`. NOTE: There is a DHCP server running
 by default. Alternatively the host interface IP address can be statically set
-to 10.0.0.2/24.
+to 10.10.10.2/24.
 
 ## LED feedback
 
