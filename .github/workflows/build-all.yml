@@ -45,9 +45,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [imx6ulz]
+        include:
+          - arch: imx53
+            boot: uSD
+            mem: 512M
+            device: mark-one
+        arch: [imx6ul, imx6ulz]
         boot: [uSD, eMMC]
-        mem: [512M]
+        mem: [512M, 1G]
         device: [mark-two]
     steps:
     - uses: actions/checkout@v3.3.0
