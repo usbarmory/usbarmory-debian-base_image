@@ -10,8 +10,13 @@ Pre-compiled releases are [available](https://github.com/usbarmory/usbarmory-deb
 A Debian 9 installation with the following packages:
 
 ```
-bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap sudo dirmngr bison flex libssl-dev kmod
+bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git
+gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap
+sudo dirmngr bison flex libssl-dev kmod
 ```
+
+Follow [Go installation instructions](https://go.dev/doc/install) to
+install the last available Go version.
 
 Import the Linux signing GPG key:
 ```
