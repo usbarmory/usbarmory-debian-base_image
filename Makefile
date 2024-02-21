@@ -1,12 +1,14 @@
 SHELL = /bin/bash
 JOBS ?= 2
 
+CROSS_COMPILE?=arm-linux-gnueabihf-
+KBUILD_BUILD_USER?=usbarmory
+KBUILD_BUILD_HOST?=usbarmory
+BUILD_USER?=usbarmory
+BUILD_HOST?=usbarmory
+
 LINUX_VER=6.6.17
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
-KBUILD_BUILD_USER=usbarmory
-KBUILD_BUILD_HOST=usbarmory
-BUILD_USER=usbarmory
-BUILD_HOST=usbarmory
 LOCALVERSION=-0
 UBOOT_VER=2024.01
 ARMORYCTL_VER=1.2
@@ -90,7 +92,7 @@ u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 		fi; \
 		make usbarmory-mark-two_defconfig; \
 	fi
-	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm make -j${JOBS}
+	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=${CROSS_COMPILE} ARCH=arm make -j${JOBS}
 
 #### debian ####
 
@@ -200,14 +202,14 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 		KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
 		KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
 		LOCALVERSION=${LOCALVERSION} \
-		ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
+		ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} \
 		make -j${JOBS} olddefconfig zImage modules nxp/imx/${IMX}-usbarmory.dtb
 	if test "${IMX}" = "imx6ulz"; then \
 		cd linux-${LINUX_VER} && \
 			KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
 			KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
 			LOCALVERSION=${LOCALVERSION} \
-			ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
+			ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} \
 			make -j${JOBS} nxp/imx/${IMX}-usbarmory-tzns.dtb; \
 	fi
 
@@ -220,7 +222,7 @@ mxc-scc2-master: mxc-scc2-master.zip
 	unzip -o mxc-scc2-master.zip
 
 mxc-scc2-master/mxc-scc2.ko: mxc-scc2-master linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxc-scc2-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd mxc-scc2-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### mxs-dcp ####
 
@@ -231,7 +233,7 @@ mxs-dcp-master: mxs-dcp-master.zip
 	unzip -o mxs-dcp-master.zip
 
 mxs-dcp-master/mxs-dcp.ko: mxs-dcp-master linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxs-dcp-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd mxs-dcp-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### caam-keyblob ####
 
@@ -242,7 +244,7 @@ caam-keyblob-master: caam-keyblob-master.zip
 	unzip -o caam-keyblob-master.zip
 
 caam-keyblob-master/caam_keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### dtb ####
 
@@ -252,7 +254,7 @@ extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-spi.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-i2c.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-scc2.dts
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb nxp/imx/imx53-usbarmory-scc2.dtb
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb nxp/imx/imx53-usbarmory-scc2.dtb
 
 #### linux-image-deb ####
 
