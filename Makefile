@@ -323,10 +323,24 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 
 #### linux-headers-deb ####
 
-HEADER_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
+tmp-rootfs:
+	mkdir -p tmp-rootfs
+	sudo update-binfmts --enable qemu-arm
+	sudo qemu-debootstrap \
+		--include=bc,bison,file,flex,gcc,libc6-dev,make,ssh,sudo,vim \
+		--arch=armhf bookworm tmp-rootfs http://deb.debian.org/debian/
+
+tmp-rootfs/linux-${LINUX_VER}/scripts/basic/fixdep: tmp-rootfs linux-${LINUX_VER}.tar.xz
+	sudo rm -rf tmp-rootfs/linux-${LINUX_VER} tmp-rootfs/linux-${LINUX_VER}.tar.xz
+	sudo tar xvf linux-${LINUX_VER}.tar.xz -C tmp-rootfs/
+	sudo wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O tmp-rootfs/linux-${LINUX_VER}/.config
+	sudo chroot tmp-rootfs mount -t proc none /proc
+	sudo chroot tmp-rootfs bash -c "cd linux-${LINUX_VER}; make olddefconfig scripts modules_prepare"
+	sudo chroot tmp-rootfs umount /proc
+
+HEADER_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage tmp-rootfs/linux-${LINUX_VER}/scripts/basic/fixdep
 linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(HEADER_DEPS)
 	mkdir -p linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules/${LINUX_VER}${LOCALVERSION}/build}
-	cd linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION} ; ln -sf build source
 	cat control_template_linux-headers | \
 		sed -e 's/XXXX/${LINUX_VER_MAJOR}/'          | \
 		sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' | \
@@ -337,7 +351,7 @@ linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armh
 		sed -i -e 's/${LINUX_VER_MAJOR}-usbarmory/${LINUX_VER_MAJOR}-usbarmory-mark-two/' \
 		linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN/control; \
 	fi
-	cd linux-${LINUX_VER} && make INSTALL_HDR_PATH=../linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/build ARCH=arm headers_install
+	cd linux-${LINUX_VER} && ../tools/prepare_headers.sh ../tmp-rootfs/linux-${LINUX_VER} ../linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/lib/modules/${LINUX_VER}${LOCALVERSION}/build
 	chmod 755 linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/DEBIAN
 	fakeroot dpkg-deb -b linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 
@@ -411,5 +425,6 @@ clean:
 	-rm -fr armoryctl* crucible* linux-* linux-image-* linux-headers-* u-boot-*
 	-rm -fr mxc-scc2-master* mxs-dcp-master* caam-keyblob-master*
 	-rm -f usbarmory-*.raw
+	-sudo rm -fr tmp-rootfs
 	-sudo umount -f rootfs
 	-rmdir rootfs

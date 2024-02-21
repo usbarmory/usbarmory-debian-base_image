@@ -56,7 +56,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
+          bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf git \
           gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
           sudo dirmngr bison flex libssl-dev kmod
 
@@ -86,7 +86,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          bc binfmt-support bzip2 fakeroot gcc gcc-arm-linux-gnueabihf git \
+          bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf git \
           gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
           sudo dirmngr bison flex libssl-dev kmod
 
