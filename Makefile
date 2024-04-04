@@ -12,7 +12,7 @@ LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 LOCALVERSION=-0
 UBOOT_VER=2024.01
 ARMORYCTL_VER=1.2
-CRUCIBLE_VER=2022.12.06
+CRUCIBLE_VER=2023.11.02
 APT_GPG_KEY=CEADE0CF01939B21
 
 USBARMORY_REPO=https://raw.githubusercontent.com/usbarmory/usbarmory/master
