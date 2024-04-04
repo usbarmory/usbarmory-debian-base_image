@@ -7,7 +7,7 @@ KBUILD_BUILD_HOST?=usbarmory
 BUILD_USER?=usbarmory
 BUILD_HOST?=usbarmory
 
-LINUX_VER=6.6.17
+LINUX_VER=6.6.24
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 LOCALVERSION=-0
 UBOOT_VER=2024.01
