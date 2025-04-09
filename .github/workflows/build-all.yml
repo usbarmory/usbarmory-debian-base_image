@@ -39,7 +39,7 @@ on: [push]
 
 jobs:
   mark-one:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -47,10 +47,10 @@ jobs:
         boot: [uSD]
         device: [mark-one]
     steps:
-    - uses: actions/checkout@v3.3.0
-    - uses: actions/setup-go@v3.5.0
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
       with:
-        go-version: '1.22.1'
+        go-version: '1.24.2'
 
     - name: Prerequisites
       run: |
@@ -68,7 +68,7 @@ jobs:
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
   mark-two:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -77,10 +77,10 @@ jobs:
         mem: [512M, 1G]
         device: [mark-two]
     steps:
-    - uses: actions/checkout@v3.3.0
-    - uses: actions/setup-go@v3.5.0
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
       with:
-        go-version: '1.22.1'
+        go-version: '1.24.2'
 
     - name: Prerequisites
       run: |
