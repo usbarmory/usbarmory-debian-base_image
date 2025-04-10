@@ -14,6 +14,7 @@ UBOOT_VER=2024.10
 ARMORYCTL_VER=1.2
 CRUCIBLE_VER=2023.11.02
 APT_GPG_KEY=CEADE0CF01939B21
+MXS_DCP_BRANCH=longterm-6.6
 
 USBARMORY_REPO=https://raw.githubusercontent.com/usbarmory/usbarmory/master
 ARMORYCTL_REPO=https://github.com/usbarmory/armoryctl
@@ -226,14 +227,14 @@ mxc-scc2-master/mxc-scc2.ko: mxc-scc2-master linux-${LINUX_VER}/arch/arm/boot/zI
 
 #### mxs-dcp ####
 
-mxs-dcp.zip:
-	wget ${MXS_DCP_REPO}/archive/longterm-${LINUX_VER_MAJOR}.zip -O mxs-dcp.zip
+mxs-dcp-${MXS_DCP_BRANCH}.zip:
+	wget ${MXS_DCP_REPO}/archive/${MXS_DCP_BRANCH}.zip -O mxs-dcp-${MXS_DCP_BRANCH}.zip
 
-mxs-dcp: mxs-dcp.zip
-	unzip -o mxs-dcp.zip
+mxs-dcp-${MXS_DCP_BRANCH}: mxs-dcp-${MXS_DCP_BRANCH}.zip
+	unzip -o mxs-dcp-${MXS_DCP_BRANCH}.zip
 
-mxs-dcp/mxs-dcp.ko: mxs-dcp linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxs-dcp && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp linux-${LINUX_VER}/arch/arm/boot/zImage
+	cd mxs-dcp-${MXS_DCP_BRANCH} && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### caam-keyblob ####
 
@@ -264,7 +265,7 @@ KERNEL_DEPS += mxc-scc2-master/mxc-scc2.ko
 KERNEL_DEPS += extra-dtb
 endif
 ifeq ($(V),mark-two)
-KERNEL_DEPS += mxs-dcp/mxs-dcp.ko
+KERNEL_DEPS += mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
 KERNEL_DEPS += caam-keyblob-master/caam_keyblob.ko
 endif
 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(KERNEL_DEPS)
@@ -310,7 +311,7 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 			sed -e 's/DTB_SUM/'"$${DTB_SUM}"'/' | \
 			sed -e 's/YYYY/${LINUX_VER}${LOCALVERSION}/' \
 			> linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/armory-boot.conf ; \
-		cd mxs-dcp && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
+		cd mxs-dcp-${MXS_DCP_BRANCH} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ul"; then \
 		cd caam-keyblob-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
@@ -413,7 +414,7 @@ debian-xz: usbarmory-${IMG_VERSION}.raw.xz
 linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 linux-image-deb: linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 linux-headers-deb: linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
-mxs-dcp: mxs-dcp/mxs-dcp.ko
+mxs-dcp: mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
 mxc-scc2: mxc-scc2-master/mxc-scc2.ko
 caam-keyblob: caam-keyblob-master/caam_keyblob.ko
 armoryctl: armoryctl-${ARMORYCTL_VER}/armoryctl
