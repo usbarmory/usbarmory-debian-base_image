@@ -4,7 +4,7 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf \
     git gnupg make parted rsync qemu-user-static wget xz-utils zip \
-    debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio
+    debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio \
     uuid-dev libgnutls28-dev apt-utils
 
 # remove default usere as it can interfere with user's UID
