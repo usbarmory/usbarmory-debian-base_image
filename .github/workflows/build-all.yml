@@ -58,7 +58,7 @@ jobs:
         sudo apt-get install -y \
           bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf git \
           gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
-          sudo dirmngr bison flex libssl-dev kmod
+          sudo dirmngr bison flex libssl-dev kmod uuid-dev libgnutls28-dev
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
@@ -88,7 +88,7 @@ jobs:
         sudo apt-get install -y \
           bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf git \
           gnupg make parted rsync qemu-user-static wget xz-utils zip debootstrap \
-          sudo dirmngr bison flex libssl-dev kmod
+          sudo dirmngr bison flex libssl-dev kmod uuid-dev libgnutls28-dev
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
