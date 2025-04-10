@@ -233,7 +233,7 @@ mxs-dcp-${MXS_DCP_BRANCH}.zip:
 mxs-dcp-${MXS_DCP_BRANCH}: mxs-dcp-${MXS_DCP_BRANCH}.zip
 	unzip -o mxs-dcp-${MXS_DCP_BRANCH}.zip
 
-mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp linux-${LINUX_VER}/arch/arm/boot/zImage
+mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp-${MXS_DCP_BRANCH} linux-${LINUX_VER}/arch/arm/boot/zImage
 	cd mxs-dcp-${MXS_DCP_BRANCH} && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### caam-keyblob ####
