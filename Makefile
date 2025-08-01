@@ -20,7 +20,6 @@ CAAM_KEYBLOB_BRANCH=longterm-6.12
 USBARMORY_REPO=https://raw.githubusercontent.com/usbarmory/usbarmory/master
 ARMORYCTL_REPO=https://github.com/usbarmory/armoryctl
 CRUCIBLE_REPO=https://github.com/usbarmory/crucible
-MXC_SCC2_REPO=https://github.com/usbarmory/mxc-scc2
 MXS_DCP_REPO=https://github.com/usbarmory/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/usbarmory/caam-keyblob
 IMG_VERSION=${V}-${BOOT_PARSED}-debian_bookworm-base_image-$(shell /bin/date -u "+%Y%m%d")
@@ -215,17 +214,6 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
 			make -j${JOBS} nxp/imx/${IMX}-usbarmory-tzns.dtb; \
 	fi
 
-#### mxc-scc2 ####
-
-mxc-scc2-master.zip:
-	wget ${MXC_SCC2_REPO}/archive/master.zip -O mxc-scc2-master.zip
-
-mxc-scc2-master: mxc-scc2-master.zip
-	unzip -o mxc-scc2-master.zip
-
-mxc-scc2-master/mxc-scc2.ko: mxc-scc2-master linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxc-scc2-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
-
 #### mxs-dcp ####
 
 mxs-dcp-${MXS_DCP_BRANCH}.zip:
@@ -255,14 +243,12 @@ extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-gpio.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-spi.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-i2c.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-scc2.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-scc2.dts
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb nxp/imx/imx53-usbarmory-scc2.dtb
+	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb
 
 #### linux-image-deb ####
 
 KERNEL_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
 ifeq ($(V),mark-one)
-KERNEL_DEPS += mxc-scc2-master/mxc-scc2.ko
 KERNEL_DEPS += extra-dtb
 endif
 ifeq ($(V),mark-two)
@@ -294,8 +280,6 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-spi.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-spi-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-gpio.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-gpio-${LINUX_VER}${LOCALVERSION}.dtb; \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-i2c.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-i2c-${LINUX_VER}${LOCALVERSION}.dtb; \
-		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-scc2.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-scc2-${LINUX_VER}${LOCALVERSION}.dtb; \
-		cd mxc-scc2-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ulz"; then \
 		cp -r linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot/${IMX}-usbarmory-tzns-${LINUX_VER}${LOCALVERSION}.dtb ; \
@@ -407,7 +391,7 @@ crucible_${CRUCIBLE_VER}_armhf.deb: crucible-${CRUCIBLE_VER}/crucible
 #### targets ####
 
 .PHONY: u-boot debian debian-xz linux linux-image-deb linux-headers-deb
-.PHONY: mxs-dcp mxc-scc2 caam-keyblob armoryctl armoryctl-deb crucible crucible-deb
+.PHONY: mxs-dcp caam-keyblob armoryctl armoryctl-deb crucible crucible-deb
 
 u-boot: u-boot-${UBOOT_VER}/u-boot.bin
 debian: usbarmory-${IMG_VERSION}.raw
@@ -416,7 +400,6 @@ linux: linux-${LINUX_VER}/arch/arm/boot/zImage
 linux-image-deb: linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 linux-headers-deb: linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 mxs-dcp: mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
-mxc-scc2: mxc-scc2-master/mxc-scc2.ko
 caam-keyblob: caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko
 armoryctl: armoryctl-${ARMORYCTL_VER}/armoryctl
 armoryctl-deb: armoryctl_${ARMORYCTL_VER}_armhf.deb
@@ -428,7 +411,7 @@ release: usbarmory-${IMG_VERSION}.raw.xz
 
 clean:
 	-rm -fr armoryctl* crucible* linux-* linux-image-* linux-headers-* u-boot-*
-	-rm -fr mxc-scc2-master* mxs-dcp* caam-keyblob*
+	-rm -fr mxs-dcp* caam-keyblob*
 	-rm -f usbarmory-*.raw
 	-sudo rm -fr tmp-rootfs
 	-sudo umount -f rootfs
