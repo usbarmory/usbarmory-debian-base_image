@@ -7,14 +7,15 @@ KBUILD_BUILD_HOST?=usbarmory
 BUILD_USER?=usbarmory
 BUILD_HOST?=usbarmory
 
-LINUX_VER=6.6.58
+LINUX_VER=6.12.40
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 LOCALVERSION=-0
 UBOOT_VER=2025.04
 ARMORYCTL_VER=1.2
 CRUCIBLE_VER=2023.11.02
 APT_GPG_KEY=CEADE0CF01939B21
-MXS_DCP_BRANCH=longterm-6.6
+MXS_DCP_BRANCH=longterm-6.12
+CAAM_KEYBLOB_BRANCH=longterm-6.12
 
 USBARMORY_REPO=https://raw.githubusercontent.com/usbarmory/usbarmory/master
 ARMORYCTL_REPO=https://github.com/usbarmory/armoryctl
@@ -238,14 +239,14 @@ mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp-${MXS_DCP_BRANCH} linux-${LINUX_VE
 
 #### caam-keyblob ####
 
-caam-keyblob-master.zip:
-	wget ${CAAM_KEYBLOB_REPO}/archive/master.zip -O caam-keyblob-master.zip
+caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip:
+	wget ${CAAM_KEYBLOB_REPO}/archive/${CAAM_KEYBLOB_BRANCH}.zip -O caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
 
-caam-keyblob-master: caam-keyblob-master.zip
-	unzip -o caam-keyblob-master.zip
+caam-keyblob-${CAAM_KEYBLOB_BRANCH}: caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
+	unzip -o caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
 
-caam-keyblob-master/caam_keyblob.ko: caam-keyblob-master linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd caam-keyblob-master && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko: caam-keyblob-${CAAM_KEYBLOB_BRANCH} linux-${LINUX_VER}/arch/arm/boot/zImage
+	cd caam-keyblob-${CAAM_KEYBLOB_BRANCH} && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### dtb ####
 
@@ -266,7 +267,7 @@ KERNEL_DEPS += extra-dtb
 endif
 ifeq ($(V),mark-two)
 KERNEL_DEPS += mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
-KERNEL_DEPS += caam-keyblob-master/caam_keyblob.ko
+KERNEL_DEPS += caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko
 endif
 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(KERNEL_DEPS)
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
@@ -314,7 +315,7 @@ linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.
 		cd mxs-dcp-${MXS_DCP_BRANCH} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	@if test "${IMX}" = "imx6ul"; then \
-		cd caam-keyblob-master && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
+		cd caam-keyblob-${CAAM_KEYBLOB_BRANCH} && make INSTALL_MOD_PATH=../linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf ARCH=arm KERNEL_SRC=../linux-${LINUX_VER} modules_install; \
 	fi
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf zImage-${LINUX_VER}${LOCALVERSION}-usbarmory zImage
 	cd linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/boot ; ln -sf ${IMX}-usbarmory-default-${LINUX_VER}${LOCALVERSION}.dtb ${IMX}-usbarmory.dtb
@@ -416,7 +417,7 @@ linux-image-deb: linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOC
 linux-headers-deb: linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 mxs-dcp: mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
 mxc-scc2: mxc-scc2-master/mxc-scc2.ko
-caam-keyblob: caam-keyblob-master/caam_keyblob.ko
+caam-keyblob: caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko
 armoryctl: armoryctl-${ARMORYCTL_VER}/armoryctl
 armoryctl-deb: armoryctl_${ARMORYCTL_VER}_armhf.deb
 crucible: crucible-${CRUCIBLE_VER}/crucible
@@ -427,7 +428,7 @@ release: usbarmory-${IMG_VERSION}.raw.xz
 
 clean:
 	-rm -fr armoryctl* crucible* linux-* linux-image-* linux-headers-* u-boot-*
-	-rm -fr mxc-scc2-master* mxs-dcp* caam-keyblob-master*
+	-rm -fr mxc-scc2-master* mxs-dcp* caam-keyblob*
 	-rm -f usbarmory-*.raw
 	-sudo rm -fr tmp-rootfs
 	-sudo umount -f rootfs
