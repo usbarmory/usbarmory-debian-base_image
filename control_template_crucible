@@ -1,5 +1,5 @@
 Package: crucible
 Version: YYYY
-Maintainer: Andrej Rosano <andrej.rosano@withsecure.com>
+Maintainer: Andrej Rosano <andrej@inversepath.com>
 Architecture: armhf
 Description: One-Time-Programmable (OTP) fusing tool

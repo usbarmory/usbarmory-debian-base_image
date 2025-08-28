@@ -1,6 +1,6 @@
 Package: linux-headers-XXXX-usbarmory
 Version: YYYY
-Maintainer: Andrej Rosano <andrej.rosano@withsecure.com>
+Maintainer: Andrej Rosano <andrej@inversepath.com>
 Architecture: armhf
 Depends: ZZZZ
 Description: Header file for Linux XXXX for USB armory

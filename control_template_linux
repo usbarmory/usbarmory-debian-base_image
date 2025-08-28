@@ -1,5 +1,5 @@
 Package: linux-image-XXXX-usbarmory
 Version: YYYY
-Maintainer: Andrej Rosano <andrej.rosano@withsecure.com>
+Maintainer: Andrej Rosano <andrej@inversepath.com>
 Architecture: armhf
 Description: Linux XXXX for USB armory
