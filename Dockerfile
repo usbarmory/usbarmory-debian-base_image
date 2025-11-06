@@ -7,7 +7,7 @@ RUN apt-get install -y \
     debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio \
     uuid-dev libgnutls28-dev apt-utils
 
-# remove default usere as it can interfere with user's UID
+# remove default user as it can interfere with user's UID
 RUN userdel -r ubuntu
 
 # create user "builder" with sudo privileges
@@ -25,7 +25,7 @@ RUN su - $USER -c "gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 147C
 RUN su - $USER -c "gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 7721F63BD38B4796"
 
 # install golang
-ENV GOLANG_VERSION="1.24.5"
+ENV GOLANG_VERSION="1.25.4"
 
 RUN su - $USER -c "wget -O go.tgz https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz"
 RUN su - $USER -c "wget -O go.tgz.asc https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz.asc"
