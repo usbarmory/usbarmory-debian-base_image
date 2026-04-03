@@ -22,7 +22,7 @@ ARMORYCTL_REPO=https://github.com/usbarmory/armoryctl
 CRUCIBLE_REPO=https://github.com/usbarmory/crucible
 MXS_DCP_REPO=https://github.com/usbarmory/mxs-dcp
 CAAM_KEYBLOB_REPO=https://github.com/usbarmory/caam-keyblob
-IMG_VERSION=${V}-${BOOT_PARSED}-debian_bookworm-base_image-$(shell /bin/date -u "+%Y%m%d")
+IMG_VERSION=${V}-${BOOT_PARSED}-debian_trixie-base_image-$(shell /bin/date -u "+%Y%m%d")
 LOSETUP_DEV=$(shell sudo /sbin/losetup -f)
 
 .DEFAULT_GOAL := release
@@ -110,15 +110,14 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	mkdir -p rootfs
 	sudo mount -o loop,offset=5242880 -t ext4 usbarmory-${IMG_VERSION}.raw rootfs/
 	sudo update-binfmts --enable qemu-arm
-	sudo qemu-debootstrap \
-		--include=ssh,sudo,ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,cpufrequtils,isc-dhcp-server,haveged,rng-tools-debian,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd,systemd-timesyncd \
-		--arch=armhf bookworm rootfs http://deb.debian.org/debian/
+	sudo debootstrap \
+		--include=ssh,sudo,ntpsec-ntpdate,fake-hwclock,openssl,vim,nano,cryptsetup,lvm2,locales,less,linux-cpupower,haveged,kea-dhcp4-server,rng-tools-debian,whois,iw,wpasupplicant,dbus,apt-transport-https,dirmngr,ca-certificates,u-boot-tools,mmc-utils,gnupg,libpam-systemd,systemd-timesyncd \
+		--arch=armhf trixie rootfs http://deb.debian.org/debian/
 	sudo chroot rootfs mount -t proc none /proc
 	sudo install -m 755 -o root -g root conf/rc.local rootfs/etc/rc.local
 	sudo install -m 644 -o root -g root conf/sources.list rootfs/etc/apt/sources.list
-	sudo install -m 644 -o root -g root conf/dhcpd.conf rootfs/etc/dhcp/dhcpd.conf
+	sudo install -m 644 -o root -g root conf/kea-dhcp4.conf rootfs/etc/kea/kea-dhcp4.conf
 	sudo install -m 644 -o root -g root conf/usbarmory.conf rootfs/etc/modprobe.d/usbarmory.conf
-	sudo sed -i -e 's/INTERFACESv4=""/INTERFACESv4="usb0"/' rootfs/etc/default/isc-dhcp-server
 	echo "tmpfs /tmp tmpfs defaults 0 0" | sudo tee rootfs/etc/fstab
 	echo -e "\nUseDNS no" | sudo tee -a rootfs/etc/ssh/sshd_config
 	echo "nameserver 8.8.8.8" | sudo tee rootfs/etc/resolv.conf
@@ -317,7 +316,7 @@ tmp-rootfs:
 	sudo update-binfmts --enable qemu-arm
 	sudo qemu-debootstrap \
 		--include=bc,bison,file,flex,gcc,libc6-dev,make,ssh,sudo,vim \
-		--arch=armhf bookworm tmp-rootfs http://deb.debian.org/debian/
+		--arch=armhf trixie tmp-rootfs http://deb.debian.org/debian/
 
 tmp-rootfs/linux-${LINUX_VER}/scripts/basic/fixdep: tmp-rootfs linux-${LINUX_VER}.tar.xz
 	sudo rm -rf tmp-rootfs/linux-${LINUX_VER} tmp-rootfs/linux-${LINUX_VER}.tar.xz
