@@ -127,7 +127,7 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	sudo chroot rootfs systemctl mask systemd-binfmt.service
 	@if test "${V}" = "mark-one"; then \
 		sudo install -m 644 -o root -g root conf/haveged.service rootfs/etc/systemd/system/haveged.service; \
-		sudo chroot rootfs systemctl mask rng-tools.service; \
+		sudo chroot rootfs systemctl mask rng-tools-debian.service; \
 	fi
 	@if test "${V}" = "mark-two"; then \
 		sudo chroot rootfs systemctl mask haveged.service; \
