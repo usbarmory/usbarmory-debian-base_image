@@ -19,8 +19,7 @@ RUN useradd --uid ${UID} --gid $USER --shell /bin/bash --home-dir /home/$USER --
 RUN echo "builder ALL=(ALL) NOPASSWD: ALL" | tee -a /etc/sudoers
 
 # import U-Boot signing keys
-RUN su - $USER -c "gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 38DBBDC86092693E"
-RUN su - $USER -c "gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 147C39FF9634B72C"
+RUN su - $USER -c "gpg --batch --keyserver keys.openpgp.org --recv-keys 2BE2A0F50ABFE40A"
 # import golang signing keys
 RUN su - $USER -c "gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 7721F63BD38B4796"
 

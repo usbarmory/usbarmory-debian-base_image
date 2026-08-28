@@ -62,8 +62,7 @@ jobs:
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
+        wget https://usbarmory.github.io/keys/2BE2A0F50ABFE40A.asc && gpg --import 2BE2A0F50ABFE40A.asc
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
@@ -92,7 +91,6 @@ jobs:
 
     - name: Import Signing Keys
       run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://usbarmory.github.io/keys/38DBBDC86092693E.asc && gpg --import 38DBBDC86092693E.asc
-        wget https://usbarmory.github.io/keys/147C39FF9634B72C.asc && gpg --import 147C39FF9634B72C.asc
+        wget https://usbarmory.github.io/keys/2BE2A0F50ABFE40A.asc && gpg --import 2BE2A0F50ABFE40A.asc
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} MEM=${{ matrix.mem }} BOOT=${{ matrix.boot }}
