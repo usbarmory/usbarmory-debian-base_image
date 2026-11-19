@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y \
     bc binfmt-support bzip2 fakeroot file gcc gcc-arm-linux-gnueabihf \
-    git gnupg make parted rsync qemu-user-static wget xz-utils zip \
+    git gnupg gnupg2 make parted rsync qemu-user-static wget xz-utils zip \
     debootstrap sudo dirmngr bison flex libssl-dev kmod udev cpio \
     uuid-dev libgnutls28-dev apt-utils
 
@@ -18,6 +18,8 @@ RUN groupadd --gid ${GID} $USER
 RUN useradd --uid ${UID} --gid $USER --shell /bin/bash --home-dir /home/$USER --create-home $USER
 RUN echo "builder ALL=(ALL) NOPASSWD: ALL" | tee -a /etc/sudoers
 
+# import Linux signing keys
+RUN su - $USER -c "gpg2 --locate-keys torvalds@kernel.org gregkh@kernel.org"
 # import U-Boot signing keys
 RUN su - $USER -c "gpg --batch --keyserver keys.openpgp.org --recv-keys 2BE2A0F50ABFE40A"
 # import golang signing keys
@@ -31,8 +33,8 @@ RUN su - $USER -c "wget -O go.tgz.asc https://go.dev/dl/go${GOLANG_VERSION}.linu
 RUN su - $USER -c "gpg --batch --verify go.tgz.asc go.tgz"
 RUN tar -C /usr/local -xzf /home/$USER/go.tgz && rm /home/$USER/go.tgz*
 
-ENV PATH "$PATH:/usr/local/go/bin"
-ENV GOPATH "/home/${USER}/go"
+ENV PATH="$PATH:/usr/local/go/bin"
+ENV GOPATH="/home/${USER}/go"
 
 USER $USER
 WORKDIR /usbarmory
