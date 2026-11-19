@@ -24,7 +24,7 @@ RUN su - $USER -c "gpg --batch --keyserver keys.openpgp.org --recv-keys 2BE2A0F5
 RUN su - $USER -c "gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 7721F63BD38B4796"
 
 # install golang
-ENV GOLANG_VERSION="1.27.0"
+ENV GOLANG_VERSION="1.27.4"
 
 RUN su - $USER -c "wget -O go.tgz https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz"
 RUN su - $USER -c "wget -O go.tgz.asc https://go.dev/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz.asc"
