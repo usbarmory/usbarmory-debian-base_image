@@ -63,8 +63,8 @@ $(info target: USB armory V=${V} IMX=${IMX} MEM=${MEM} BOOT=${BOOT})
 #### u-boot ####
 
 u-boot-${UBOOT_VER}.tar.bz2:
-	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
-	wget ftp://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
+	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
+	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
 
 u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
