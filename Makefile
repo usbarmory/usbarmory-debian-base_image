@@ -183,14 +183,16 @@ usbarmory-${IMG_VERSION}.raw.xz: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER
 
 linux-${LINUX_VER}.tar.xz:
 	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
+
+linux-${LINUX_VER}.tar.sign:
 	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
 
-linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}.tar.xz
-	@if [ ! -d "linux-${LINUX_VER}" ]; then \
-		unxz --keep linux-${LINUX_VER}.tar.xz; \
-		gpg --verify linux-${LINUX_VER}.tar.sign; \
-		tar xfm linux-${LINUX_VER}.tar && cd linux-${LINUX_VER}; \
-	fi
+linux-${LINUX_VER}: linux-${LINUX_VER}.tar.xz linux-${LINUX_VER}.tar.sign
+	unxz --keep linux-${LINUX_VER}.tar.xz
+	gpg --verify linux-${LINUX_VER}.tar.sign
+	tar xfm linux-${LINUX_VER}.tar
+
+linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O linux-${LINUX_VER}/.config
 	if test "${V}" = "mark-two"; then \
 		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts; \
