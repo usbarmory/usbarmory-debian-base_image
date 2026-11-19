@@ -1,15 +1,16 @@
 SHELL = /bin/bash
 JOBS ?= 2
 
-CROSS_COMPILE?=arm-linux-gnueabihf-
-KBUILD_BUILD_USER?=usbarmory
-KBUILD_BUILD_HOST?=usbarmory
-BUILD_USER?=usbarmory
-BUILD_HOST?=usbarmory
+export CROSS_COMPILE?=arm-linux-gnueabihf-
+export KBUILD_BUILD_USER?=usbarmory
+export KBUILD_BUILD_HOST?=usbarmory
+export BUILD_USER?=usbarmory
+export BUILD_HOST?=usbarmory
+export ARCH=arm
 
 LINUX_VER=6.18.64
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
-LOCALVERSION=-0
+export LOCALVERSION=-0
 UBOOT_VER=2025.10
 ARMORYCTL_VER=1.2
 CRUCIBLE_VER=2025.05.28
@@ -63,12 +64,16 @@ $(info target: USB armory V=${V} IMX=${IMX} MEM=${MEM} BOOT=${BOOT})
 #### u-boot ####
 
 u-boot-${UBOOT_VER}.tar.bz2:
-	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2 -O u-boot-${UBOOT_VER}.tar.bz2
-	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2.sig -O u-boot-${UBOOT_VER}.tar.bz2.sig
+	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2 -O $@
 
-u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
+u-boot-${UBOOT_VER}.tar.bz2.sig:
+	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2.sig -O $@
+
+u-boot-${UBOOT_VER}: u-boot-${UBOOT_VER}.tar.bz2 u-boot-${UBOOT_VER}.tar.bz2.sig
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xfm u-boot-${UBOOT_VER}.tar.bz2
+
+u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
 	cd u-boot-${UBOOT_VER} && make distclean
 	@if test "${V}" = "mark-one"; then \
 		cd u-boot-${UBOOT_VER} && \
@@ -93,7 +98,7 @@ u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}.tar.bz2
 		fi; \
 		make usbarmory-mark-two_defconfig; \
 	fi
-	cd u-boot-${UBOOT_VER} && CROSS_COMPILE=${CROSS_COMPILE} ARCH=arm make -j${JOBS}
+	cd u-boot-${UBOOT_VER} && make -j${JOBS}
 
 #### debian ####
 
@@ -182,38 +187,36 @@ usbarmory-${IMG_VERSION}.raw.xz: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER
 #### linux ####
 
 linux-${LINUX_VER}.tar.xz:
-	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.xz -O linux-${LINUX_VER}.tar.xz
+	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.xz -O $@
 
 linux-${LINUX_VER}.tar.sign:
-	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.sign -O linux-${LINUX_VER}.tar.sign
+	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.sign -O $@
 
-linux-${LINUX_VER}: linux-${LINUX_VER}.tar.xz linux-${LINUX_VER}.tar.sign
+linux-${LINUX_VER}.tar: linux-${LINUX_VER}.tar.xz linux-${LINUX_VER}.tar.sign
 	unxz --keep linux-${LINUX_VER}.tar.xz
 	gpg --verify linux-${LINUX_VER}.tar.sign
+
+linux-${LINUX_VER}: linux-${LINUX_VER}.tar
 	tar xfm linux-${LINUX_VER}.tar
 
-linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}
-	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O linux-${LINUX_VER}/.config
-	if test "${V}" = "mark-two"; then \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts; \
-	fi
-	if test "${IMX}" = "imx6ulz"; then \
-		wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory-tzns.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts; \
-	fi
-	cd linux-${LINUX_VER} && \
-		KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
-		KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
-		LOCALVERSION=${LOCALVERSION} \
-		ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} \
-		make -j${JOBS} olddefconfig zImage modules nxp/imx/${IMX}-usbarmory.dtb
-	if test "${IMX}" = "imx6ulz"; then \
-		cd linux-${LINUX_VER} && \
-			KBUILD_BUILD_USER=${KBUILD_BUILD_USER} \
-			KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} \
-			LOCALVERSION=${LOCALVERSION} \
-			ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} \
-			make -j${JOBS} nxp/imx/${IMX}-usbarmory-tzns.dtb; \
-	fi
+linux-${LINUX_VER}/.config: linux-${LINUX_VER}
+	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O $@
+	cd linux-${LINUX_VER} && make -j${JOBS} olddefconfig
+
+linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
+	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O $@
+
+linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts: linux-${LINUX_VER}
+	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory-tzns.dts -O $@
+
+linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dtb: linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts
+	cd linux-${LINUX_VER} && make nxp/imx/${IMX}-usbarmory.dtb
+
+linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb: linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts
+	cd linux-${LINUX_VER} && make nxp/imx/${IMX}-usbarmory-tzns.dtb
+
+linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}/.config
+	cd linux-${LINUX_VER} && make -j${JOBS} zImage modules
 
 #### mxs-dcp ####
 
@@ -224,7 +227,7 @@ mxs-dcp-${MXS_DCP_BRANCH}: mxs-dcp-${MXS_DCP_BRANCH}.zip
 	unzip -o mxs-dcp-${MXS_DCP_BRANCH}.zip
 
 mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp-${MXS_DCP_BRANCH} linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxs-dcp-${MXS_DCP_BRANCH} && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd mxs-dcp-${MXS_DCP_BRANCH} && make KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### caam-keyblob ####
 
@@ -235,7 +238,7 @@ caam-keyblob-${CAAM_KEYBLOB_BRANCH}: caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
 	unzip -o caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
 
 caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko: caam-keyblob-${CAAM_KEYBLOB_BRANCH} linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd caam-keyblob-${CAAM_KEYBLOB_BRANCH} && make KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd caam-keyblob-${CAAM_KEYBLOB_BRANCH} && make KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### dtb ####
 
@@ -244,7 +247,7 @@ extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-gpio.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-spi.dts
 	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-i2c.dts
-	cd linux-${LINUX_VER} && KBUILD_BUILD_USER=${KBUILD_BUILD_USER} KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST} LOCALVERSION=${LOCALVERSION} ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb
+	cd linux-${LINUX_VER} && make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb
 
 #### linux-image-deb ####
 
