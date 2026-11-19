@@ -73,7 +73,37 @@ u-boot-${UBOOT_VER}: u-boot-${UBOOT_VER}.tar.bz2 u-boot-${UBOOT_VER}.tar.bz2.sig
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
 	tar xfm u-boot-${UBOOT_VER}.tar.bz2
 
+ifeq ("${V}","mark-one")
 u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
+	cd u-boot-${UBOOT_VER} && \
+	    wget ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
+	    patch -p1 < 0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
+	    sed -ie 's/fdt_addr_r=0x71000000/fdt_addr_r=0x72000000/' include/configs/usbarmory.h && \
+	    make usbarmory_config
+	cd u-boot-${UBOOT_VER} && make -j${JOBS}
+endif
+
+ifeq ("${V}","mark-two")
+u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
+	cd u-boot-${UBOOT_VER} && \
+	    wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+	    patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+	    if test "${BOOT}" = "eMMC"; then \
+	        sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' configs/usbarmory-mark-two_defconfig; \
+	        sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' configs/usbarmory-mark-two_defconfig; \
+	    fi; \
+	    if test "${IMX}" = "imx6ul"; then \
+	        sed -i -e 's/fdtfile=imx6ulz-usbarmory.dtb/fdtfile=imx6ul-usbarmory.dtb/' include/configs/usbarmory-mark-two.h; \
+	    fi; \
+	    if test "${MEM}" = "1G"; then \
+	        sed -i -e 's/CONFIG_SYS_DDR_512MB=y/# CONFIG_SYS_DDR_512MB is not set/' configs/usbarmory-mark-two_defconfig; \
+	        sed -i -e 's/# CONFIG_SYS_DDR_1GB is not set/CONFIG_SYS_DDR_1GB=y/' configs/usbarmory-mark-two_defconfig; \
+	    fi; \
+	    make usbarmory-mark-two_defconfig
+	cd u-boot-${UBOOT_VER} && make -j${JOBS}
+endif
+
+REMOVE-u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
 	cd u-boot-${UBOOT_VER} && make distclean
 	@if test "${V}" = "mark-one"; then \
 		cd u-boot-${UBOOT_VER} && \
@@ -221,24 +251,24 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}/.config
 #### mxs-dcp ####
 
 mxs-dcp-${MXS_DCP_BRANCH}.zip:
-	wget ${MXS_DCP_REPO}/archive/${MXS_DCP_BRANCH}.zip -O mxs-dcp-${MXS_DCP_BRANCH}.zip
+	wget ${MXS_DCP_REPO}/archive/${MXS_DCP_BRANCH}.zip -O $@
 
 mxs-dcp-${MXS_DCP_BRANCH}: mxs-dcp-${MXS_DCP_BRANCH}.zip
-	unzip -o mxs-dcp-${MXS_DCP_BRANCH}.zip
+	unzip -o $<
 
 mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp-${MXS_DCP_BRANCH} linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd mxs-dcp-${MXS_DCP_BRANCH} && make KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd $< && make KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### caam-keyblob ####
 
 caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip:
-	wget ${CAAM_KEYBLOB_REPO}/archive/${CAAM_KEYBLOB_BRANCH}.zip -O caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
+	wget ${CAAM_KEYBLOB_REPO}/archive/${CAAM_KEYBLOB_BRANCH}.zip -O $@
 
 caam-keyblob-${CAAM_KEYBLOB_BRANCH}: caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
-	unzip -o caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
+	unzip -o $<
 
 caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko: caam-keyblob-${CAAM_KEYBLOB_BRANCH} linux-${LINUX_VER}/arch/arm/boot/zImage
-	cd caam-keyblob-${CAAM_KEYBLOB_BRANCH} && make KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
+	cd $< && make KERNEL_SRC=../linux-${LINUX_VER} -j${JOBS} all
 
 #### dtb ####
 
@@ -252,10 +282,12 @@ extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 #### linux-image-deb ####
 
 KERNEL_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
+KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dtb
 ifeq ($(V),mark-one)
 KERNEL_DEPS += extra-dtb
 endif
 ifeq ($(V),mark-two)
+KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb
 KERNEL_DEPS += mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
 KERNEL_DEPS += caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko
 endif
@@ -351,13 +383,13 @@ linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armh
 #### armoryctl ####
 
 armoryctl-${ARMORYCTL_VER}.zip:
-	wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O armoryctl-${ARMORYCTL_VER}.zip
+	wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O $@
 
 armoryctl-${ARMORYCTL_VER}: armoryctl-${ARMORYCTL_VER}.zip
-	unzip -o armoryctl-${ARMORYCTL_VER}.zip
+	unzip -o $<
 
 armoryctl-${ARMORYCTL_VER}/armoryctl: armoryctl-${ARMORYCTL_VER}
-	cd armoryctl-${ARMORYCTL_VER} && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make
+	cd $< && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make
 
 #### armoryctl-deb ####
 
@@ -373,13 +405,13 @@ armoryctl_${ARMORYCTL_VER}_armhf.deb: armoryctl-${ARMORYCTL_VER}/armoryctl
 #### crucible ####
 
 crucible-${CRUCIBLE_VER}.zip:
-	wget ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O crucible-${CRUCIBLE_VER}.zip
+	wget ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O $@
 
 crucible-${CRUCIBLE_VER}: crucible-${CRUCIBLE_VER}.zip
-	unzip -o crucible-${CRUCIBLE_VER}.zip
+	unzip -o $<
 
 crucible-${CRUCIBLE_VER}/crucible: crucible-${CRUCIBLE_VER}
-	cd crucible-${CRUCIBLE_VER} && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make crucible
+	cd $< && GOPATH=/tmp/go GOARCH=arm BUILD_USER=${BUILD_USER} BUILD_HOST=${BUILD_HOST} make crucible
 
 #### crucible-deb ####
 
@@ -390,7 +422,7 @@ crucible_${CRUCIBLE_VER}_armhf.deb: crucible-${CRUCIBLE_VER}/crucible
 		> crucible_${CRUCIBLE_VER}_armhf/DEBIAN/control
 	cp -r crucible-${CRUCIBLE_VER}/crucible crucible_${CRUCIBLE_VER}_armhf/sbin
 	chmod 755 crucible_${CRUCIBLE_VER}_armhf/DEBIAN
-	fakeroot dpkg-deb -b crucible_${CRUCIBLE_VER}_armhf crucible_${CRUCIBLE_VER}_armhf.deb
+	fakeroot dpkg-deb -b crucible_${CRUCIBLE_VER}_armhf $@
 
 #### targets ####
 
