@@ -61,8 +61,13 @@ jobs:
           sudo dirmngr bison flex libssl-dev kmod uuid-dev libgnutls28-dev
 
     - name: Import Signing Keys
-      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://usbarmory.github.io/keys/2BE2A0F50ABFE40A.asc && gpg --import 2BE2A0F50ABFE40A.asc
+      run: |
+        # import Linux signing keys
+        gpg2 --locate-keys torvalds@kernel.org gregkh@kernel.org
+        # import U-Boot signing keys
+        gpg --batch --keyserver keys.openpgp.org --recv-keys 2BE2A0F50ABFE40A
+        # import golang signing keys
+        gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 7721F63BD38B4796
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} BOOT=${{ matrix.boot }}
 
@@ -90,7 +95,12 @@ jobs:
           sudo dirmngr bison flex libssl-dev kmod uuid-dev libgnutls28-dev
 
     - name: Import Signing Keys
-      run: |  # public key servers time out on at least one test, therefore we fetch cached keys
-        wget https://usbarmory.github.io/keys/2BE2A0F50ABFE40A.asc && gpg --import 2BE2A0F50ABFE40A.asc
+      run: |
+        # import Linux signing keys
+        gpg2 --locate-keys torvalds@kernel.org gregkh@kernel.org
+        # import U-Boot signing keys
+        gpg --batch --keyserver keys.openpgp.org --recv-keys 2BE2A0F50ABFE40A
+        # import golang signing keys
+        gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 7721F63BD38B4796
 
     - run: make V=${{ matrix.device }} IMX=${{ matrix.arch }} MEM=${{ matrix.mem }} BOOT=${{ matrix.boot }}
