@@ -211,7 +211,6 @@ linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O $@
 endif
 
-ifeq ("${V}","mark-two")
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O $@
 
@@ -221,6 +220,7 @@ linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts: linux-${
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dtb: linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts
 	cd linux-${LINUX_VER} && make nxp/imx/${IMX}-usbarmory.dtb
 
+ifeq ("${V}","mark-two")
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb: linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts
 	cd linux-${LINUX_VER} && make nxp/imx/${IMX}-usbarmory-tzns.dtb
 endif
@@ -263,13 +263,16 @@ extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
 
 KERNEL_DEPS := linux-${LINUX_VER}/arch/arm/boot/zImage
 KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dtb
+
 ifeq ($(V),mark-one)
-KERNEL_DEPS += extra-dtb
-endif
-ifeq ($(V),mark-two)
-KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb
-KERNEL_DEPS += mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
-KERNEL_DEPS += caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko
+  KERNEL_DEPS += extra-dtb
+else # V==mark-two
+  ifeq ($(IMX),imx6ulz)
+    KERNEL_DEPS += linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb
+    KERNEL_DEPS += mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko
+  else # IMX==imx6ul
+    KERNEL_DEPS += caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko
+  endif
 endif
 linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb: $(KERNEL_DEPS)
 	mkdir -p linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf/{DEBIAN,boot,lib/modules}
