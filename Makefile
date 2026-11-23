@@ -8,7 +8,7 @@ export BUILD_USER?=usbarmory
 export BUILD_HOST?=usbarmory
 export ARCH=arm
 
-LINUX_VER=6.18.64
+LINUX_VER=6.18.65
 LINUX_VER_MAJOR=${shell echo ${LINUX_VER} | cut -d '.' -f1,2}
 export LOCALVERSION=-0
 UBOOT_VER=2025.10
@@ -206,13 +206,10 @@ linux-${LINUX_VER}/.config: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O $@
 	cd linux-${LINUX_VER} && make -j${JOBS} olddefconfig
 
-ifeq ("${V}","mark-one")
-linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
-	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O $@
-endif
-
+ifeq ("${V}","mark-two")
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O $@
+endif
 
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory-tzns.dts -O $@
