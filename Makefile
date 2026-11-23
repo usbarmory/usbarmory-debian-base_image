@@ -103,33 +103,6 @@ u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
 	cd u-boot-${UBOOT_VER} && make -j${JOBS}
 endif
 
-REMOVE-u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
-	cd u-boot-${UBOOT_VER} && make distclean
-	@if test "${V}" = "mark-one"; then \
-		cd u-boot-${UBOOT_VER} && \
-		wget ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
-		patch -p1 < 0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
-		sed -ie 's/fdt_addr_r=0x71000000/fdt_addr_r=0x72000000/' include/configs/usbarmory.h && \
-		make usbarmory_config; \
-	elif test "${V}" = "mark-two"; then \
-		cd u-boot-${UBOOT_VER} && \
-		wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
-		if test "${BOOT}" = "eMMC"; then \
-			sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' configs/usbarmory-mark-two_defconfig; \
-			sed -i -e 's/# CONFIG_SYS_BOOT_DEV_EMMC is not set/CONFIG_SYS_BOOT_DEV_EMMC=y/' configs/usbarmory-mark-two_defconfig; \
-		fi; \
-		if test "${IMX}" = "imx6ul"; then \
-			sed -i -e 's/fdtfile=imx6ulz-usbarmory.dtb/fdtfile=imx6ul-usbarmory.dtb/' include/configs/usbarmory-mark-two.h; \
-		fi; \
-		if test "${MEM}" = "1G"; then \
-			sed -i -e 's/CONFIG_SYS_DDR_512MB=y/# CONFIG_SYS_DDR_512MB is not set/' configs/usbarmory-mark-two_defconfig; \
-			sed -i -e 's/# CONFIG_SYS_DDR_1GB is not set/CONFIG_SYS_DDR_1GB=y/' configs/usbarmory-mark-two_defconfig; \
-		fi; \
-		make usbarmory-mark-two_defconfig; \
-	fi
-	cd u-boot-${UBOOT_VER} && make -j${JOBS}
-
 #### debian ####
 
 DEBIAN_DEPS := linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
@@ -233,6 +206,12 @@ linux-${LINUX_VER}/.config: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O $@
 	cd linux-${LINUX_VER} && make -j${JOBS} olddefconfig
 
+ifeq ("${V}","mark-one")
+linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
+	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-usbarmory.dts -O $@
+endif
+
+ifeq ("${V}","mark-two")
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
 	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O $@
 
@@ -244,6 +223,7 @@ linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dtb: linux-${LINUX
 
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dtb: linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts
 	cd linux-${LINUX_VER} && make nxp/imx/${IMX}-usbarmory-tzns.dtb
+endif
 
 linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}/.config
 	cd linux-${LINUX_VER} && make -j${JOBS} zImage modules
