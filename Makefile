@@ -107,7 +107,10 @@ endif
 
 DEBIAN_DEPS := linux-image-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
 DEBIAN_DEPS += linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armhf.deb
-DEBIAN_DEPS += armoryctl_${ARMORYCTL_VER}_armhf.deb crucible_${CRUCIBLE_VER}_armhf.deb
+DEBIAN_DEPS += crucible_${CRUCIBLE_VER}_armhf.deb
+ifeq ("${V}","mark-two")
+DEBIAN_DEPS += armoryctl_${ARMORYCTL_VER}_armhf.deb
+endif
 usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	truncate -s 3500MiB usbarmory-${IMG_VERSION}.raw
 	sudo /sbin/parted usbarmory-${IMG_VERSION}.raw --script mklabel msdos
