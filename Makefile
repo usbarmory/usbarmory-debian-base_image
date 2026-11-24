@@ -64,10 +64,10 @@ $(info target: USB armory V=${V} IMX=${IMX} MEM=${MEM} BOOT=${BOOT})
 #### u-boot ####
 
 u-boot-${UBOOT_VER}.tar.bz2:
-	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2 -O $@
+	wget -4 https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2 -O $@
 
 u-boot-${UBOOT_VER}.tar.bz2.sig:
-	wget https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2.sig -O $@
+	wget -4 https://git.u-boot-project.org/u-boot/u-boot/-/releases/v${UBOOT_VER}/downloads/u-boot-${UBOOT_VER}.tar.bz2.sig -O $@
 
 u-boot-${UBOOT_VER}: u-boot-${UBOOT_VER}.tar.bz2 u-boot-${UBOOT_VER}.tar.bz2.sig
 	gpg --verify u-boot-${UBOOT_VER}.tar.bz2.sig
@@ -76,7 +76,7 @@ u-boot-${UBOOT_VER}: u-boot-${UBOOT_VER}.tar.bz2 u-boot-${UBOOT_VER}.tar.bz2.sig
 ifeq ("${V}","mark-one")
 u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
 	cd u-boot-${UBOOT_VER} && \
-	    wget ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
+	    wget -4 ${USBARMORY_REPO}/software/u-boot/0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
 	    patch -p1 < 0001-Fix-microSD-detection-for-USB-armory-Mk-I.patch && \
 	    sed -ie 's/fdt_addr_r=0x71000000/fdt_addr_r=0x72000000/' include/configs/usbarmory.h && \
 	    make usbarmory_config
@@ -86,7 +86,7 @@ endif
 ifeq ("${V}","mark-two")
 u-boot-${UBOOT_VER}/u-boot.bin: u-boot-${UBOOT_VER}
 	cd u-boot-${UBOOT_VER} && \
-	    wget ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
+	    wget -4 ${USBARMORY_REPO}/software/u-boot/0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
 	    patch -p1 < 0001-ARM-mx6-add-support-for-USB-armory-Mk-II-board.patch && \
 	    if test "${BOOT}" = "eMMC"; then \
 	        sed -i -e 's/CONFIG_SYS_BOOT_DEV_MICROSD=y/# CONFIG_SYS_BOOT_DEV_MICROSD is not set/' configs/usbarmory-mark-two_defconfig; \
@@ -140,8 +140,8 @@ usbarmory-${IMG_VERSION}.raw: $(DEBIAN_DEPS)
 	@if test "${V}" = "mark-two"; then \
 		sudo chroot rootfs systemctl mask haveged.service; \
 	fi
-	sudo wget https://usbarmory.github.io/keys/gpg-andrej.asc -O rootfs/etc/apt/trusted.gpg.d/usbarmory-andrej.asc
-	sudo wget https://usbarmory.github.io/keys/gpg-andrea.asc -O rootfs/etc/apt/trusted.gpg.d/usbarmory-andrea.asc
+	sudo wget -4 https://usbarmory.github.io/keys/gpg-andrej.asc -O rootfs/etc/apt/trusted.gpg.d/usbarmory-andrej.asc
+	sudo wget -4 https://usbarmory.github.io/keys/gpg-andrea.asc -O rootfs/etc/apt/trusted.gpg.d/usbarmory-andrea.asc
 	echo "ledtrig_heartbeat" | sudo tee -a rootfs/etc/modules
 	echo "ci_hdrc_imx" | sudo tee -a rootfs/etc/modules
 	echo "g_ether" | sudo tee -a rootfs/etc/modules
@@ -190,10 +190,10 @@ usbarmory-${IMG_VERSION}.raw.xz: usbarmory-${IMG_VERSION}.raw u-boot-${UBOOT_VER
 #### linux ####
 
 linux-${LINUX_VER}.tar.xz:
-	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.xz -O $@
+	wget -4 https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.xz -O $@
 
 linux-${LINUX_VER}.tar.sign:
-	wget https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.sign -O $@
+	wget -4 https://www.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_VER}.tar.sign -O $@
 
 linux-${LINUX_VER}.tar: linux-${LINUX_VER}.tar.xz linux-${LINUX_VER}.tar.sign
 	unxz --keep linux-${LINUX_VER}.tar.xz
@@ -203,16 +203,16 @@ linux-${LINUX_VER}: linux-${LINUX_VER}.tar
 	tar xfm linux-${LINUX_VER}.tar
 
 linux-${LINUX_VER}/.config: linux-${LINUX_VER}
-	wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O $@
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O $@
 	cd linux-${LINUX_VER} && make -j${JOBS} olddefconfig
 
 ifeq ("${V}","mark-two")
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts: linux-${LINUX_VER}
-	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O $@
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory.dts -O $@
 endif
 
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory-tzns.dts: linux-${LINUX_VER}
-	wget ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory-tzns.dts -O $@
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/${V}/${IMX}-${MEM}-usbarmory-tzns.dts -O $@
 
 linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dtb: linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/${IMX}-usbarmory.dts
 	cd linux-${LINUX_VER} && make nxp/imx/${IMX}-usbarmory.dtb
@@ -228,7 +228,7 @@ linux-${LINUX_VER}/arch/arm/boot/zImage: linux-${LINUX_VER}/.config
 #### mxs-dcp ####
 
 mxs-dcp-${MXS_DCP_BRANCH}.zip:
-	wget ${MXS_DCP_REPO}/archive/${MXS_DCP_BRANCH}.zip -O $@
+	wget -4 ${MXS_DCP_REPO}/archive/${MXS_DCP_BRANCH}.zip -O $@
 
 mxs-dcp-${MXS_DCP_BRANCH}: mxs-dcp-${MXS_DCP_BRANCH}.zip
 	unzip -o $<
@@ -239,7 +239,7 @@ mxs-dcp-${MXS_DCP_BRANCH}/mxs-dcp.ko: mxs-dcp-${MXS_DCP_BRANCH} linux-${LINUX_VE
 #### caam-keyblob ####
 
 caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip:
-	wget ${CAAM_KEYBLOB_REPO}/archive/${CAAM_KEYBLOB_BRANCH}.zip -O $@
+	wget -4 ${CAAM_KEYBLOB_REPO}/archive/${CAAM_KEYBLOB_BRANCH}.zip -O $@
 
 caam-keyblob-${CAAM_KEYBLOB_BRANCH}: caam-keyblob-${CAAM_KEYBLOB_BRANCH}.zip
 	unzip -o $<
@@ -250,10 +250,10 @@ caam-keyblob-${CAAM_KEYBLOB_BRANCH}/caam_keyblob.ko: caam-keyblob-${CAAM_KEYBLOB
 #### dtb ####
 
 extra-dtb: linux-${LINUX_VER}/arch/arm/boot/zImage
-	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-host.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-gpio.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-spi.dts
-	wget ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-i2c.dts
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-host.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-host.dts
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-gpio.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-gpio.dts
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-spi.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-spi.dts
+	wget -4 ${USBARMORY_REPO}/software/kernel_conf/mark-one/imx53-usbarmory-i2c.dts -O linux-${LINUX_VER}/arch/arm/boot/dts/nxp/imx/imx53-usbarmory-i2c.dts
 	cd linux-${LINUX_VER} && make -j${JOBS} nxp/imx/imx53-usbarmory-host.dtb nxp/imx/imx53-usbarmory-gpio.dtb nxp/imx/imx53-usbarmory-spi.dtb nxp/imx/imx53-usbarmory-i2c.dtb
 
 #### linux-image-deb ####
@@ -338,7 +338,7 @@ tmp-rootfs:
 tmp-rootfs/linux-${LINUX_VER}/scripts/basic/fixdep: tmp-rootfs linux-${LINUX_VER}.tar.xz
 	sudo rm -rf tmp-rootfs/linux-${LINUX_VER} tmp-rootfs/linux-${LINUX_VER}.tar.xz
 	sudo tar xvf linux-${LINUX_VER}.tar.xz -C tmp-rootfs/
-	sudo wget ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O tmp-rootfs/linux-${LINUX_VER}/.config
+	sudo wget -4 ${USBARMORY_REPO}/software/kernel_conf/usbarmory_linux-${LINUX_VER_MAJOR}.defconfig -O tmp-rootfs/linux-${LINUX_VER}/.config
 	sudo chroot tmp-rootfs mount -t proc none /proc
 	sudo chroot tmp-rootfs bash -c "cd linux-${LINUX_VER}; make olddefconfig scripts modules_prepare"
 	sudo chroot tmp-rootfs umount /proc
@@ -363,7 +363,7 @@ linux-headers-${LINUX_VER_MAJOR}-usbarmory-${V}_${LINUX_VER}${LOCALVERSION}_armh
 #### armoryctl ####
 
 armoryctl-${ARMORYCTL_VER}.zip:
-	wget ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O $@
+	wget -4 ${ARMORYCTL_REPO}/archive/v${ARMORYCTL_VER}.zip -O $@
 
 armoryctl-${ARMORYCTL_VER}: armoryctl-${ARMORYCTL_VER}.zip
 	unzip -o $<
@@ -385,7 +385,7 @@ armoryctl_${ARMORYCTL_VER}_armhf.deb: armoryctl-${ARMORYCTL_VER}/armoryctl
 #### crucible ####
 
 crucible-${CRUCIBLE_VER}.zip:
-	wget ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O $@
+	wget -4 ${CRUCIBLE_REPO}/archive/v${CRUCIBLE_VER}.zip -O $@
 
 crucible-${CRUCIBLE_VER}: crucible-${CRUCIBLE_VER}.zip
 	unzip -o $<
